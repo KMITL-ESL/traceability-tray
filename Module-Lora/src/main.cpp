@@ -6,14 +6,6 @@ static const PROGMEM u1_t NWKSKEY[16] = {0x28, 0xAE, 0xD2, 0x2B, 0x7E, 0x15, 0x1
 static const u1_t PROGMEM APPSKEY[16] = {0x16, 0x28, 0xAE, 0x2B, 0x7E, 0x15, 0xD2, 0xA6, 0xAB, 0xF7, 0xCF, 0x4F, 0x3C, 0x15, 0x88, 0x09};
 static const u4_t DEVADDR = 0x81302399; // <-- Change this address for every node!
 
-// These callbacks are only used in over-the-air activation, so they are
-// left empty here (we cannot leave them out completely unless
-// DISABLE_JOIN is set in arduino-lmic/project_config/lmic_project_config.h,
-// otherwise the linker will complain).
-void os_getArtEui(u1_t *buf) {}
-void os_getDevEui(u1_t *buf) {}
-void os_getDevKey(u1_t *buf) {}
-
 void do_send(osjob_t *j);
 
 static uint8_t mydata[] = "Hello, world!";
@@ -21,17 +13,14 @@ static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 60;
+const unsigned TX_INTERVAL = 300;
 
 // Pin mapping
-// Adapted for Feather M0 per p.10 of [feather]
 const lmic_pinmap lmic_pins = {
-    .nss = 10, // chip select on feather (rf95module) CS
+    .nss = 10, // chip select
     .rxtx = LMIC_UNUSED_PIN,
-    .rst = 9,         // reset pin
-    .dio = {2, 3, 4}, // assumes external jumpers [feather_lora_jumper]
-                      // DIO1 is on JP1-1: is io1 - we connect to GPO6
-                      // DIO1 is on JP5-3: is D2 - we connect to GPO5
+    .rst = 9, // reset pin
+    .dio = {2, 3, 4},
 };
 
 void onEvent(ev_t ev)
@@ -82,8 +71,6 @@ void onEvent(ev_t ev)
       Serial.println(LMIC.dataLen);
       Serial.println(F(" bytes of payload"));
     }
-    // Schedule next transmission
-    os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL), do_send);
     break;
   case EV_LOST_TSYNC:
     Serial.println(F("EV_LOST_TSYNC"));
@@ -132,12 +119,12 @@ void do_send(osjob_t *j)
     LMIC_setTxData2(1, mydata, sizeof(mydata) - 1, 0);
     Serial.println(F("Packet queued"));
   }
-  // Next TX is scheduled after TX_COMPLETE event.
+
+  os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL), do_send);
 }
 
 void setup()
 {
-  //    pinMode(13, OUTPUT);
   while (!Serial)
     ; // wait for Serial to be initialized
   Serial.begin(115200);
@@ -181,16 +168,5 @@ void setup()
 
 void loop()
 {
-  unsigned long now;
-  now = millis();
-  if ((now & 512) != 0)
-  {
-    digitalWrite(13, HIGH);
-  }
-  else
-  {
-    digitalWrite(13, LOW);
-  }
-
   os_runloop_once();
 }
