@@ -81,8 +81,60 @@ void do_send(osjob_t *j)
   os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL), do_send);
 }
 
+void prepareData(uint8_t CMD)
+{
+  switch (CMD)
+  {
+  }
+}
+
+void writeData(uint8_t CMD, uint8_t *data, uint8_t len)
+{
+  switch (CMD)
+  {
+  }
+}
+
 void receiveEvent(int n)
 {
+  if (Wire.read() != 0x2E)
+  { // Start byte
+    while (Wire.available())
+      continue;
+    Serial.println("I2C:Start byte not match");
+    return;
+  }
+  uint8_t buff[200];
+  uint8_t i = 0;
+  uint8_t sum = 0;
+  while (Wire.peek() != 0x2E)
+  { // loop untill stop byte
+    buff[i] = Wire.read();
+    if (buff[i] == 0x2D)
+    { // byte-stuffing
+      uint8_t temp = Wire.read();
+      if (temp == 0xAE)
+        buff[i] = 0x2E;
+      else if (temp == 0xAD)
+        buff[i] = 0x2D;
+      else
+        Serial.println("I2C:Byte-stuffing Error");
+    }
+    sum += buff[i];
+    i++;
+  }
+  Wire.read(); // read stop byte
+  if (sum != 0xFF)
+  { // sum all data with checksum shoud be 0xFF
+    Serial.println("I2C:Checksum error");
+    return;
+  }
+  if (i == 2)
+  { // master want to read data
+    prepareData(buff[0]);
+    return;
+  }
+  writeData(buff[0], &buff[2], buff[1]);
 }
 
 void requestEvent()
