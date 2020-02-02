@@ -64,6 +64,9 @@ const lmic_pinmap lmic_pins = {
     .rssi_cal = 10,
 };
 
+uint8_t reqResData[100];
+uint8_t reqResLen;
+
 void do_send(osjob_t *j)
 {
   // Check if there is not a current TX/RX job running
@@ -139,6 +142,34 @@ void receiveEvent(int n)
 
 void requestEvent()
 {
+  bool isCHK = 0;
+  uint8_t sum = 0;
+  Wire.write(0x2E);
+  for (uint8_t n = 0; n < reqResLen; n++)
+  {
+    sum += reqResData[n];
+    if (reqResData[n] == 0x2E)
+    {
+      Wire.write(0x2D);
+      Wire.write(0xAE);
+    }
+    else if (reqResData[n] == 0x2D)
+    {
+      Wire.write(0x2D);
+      Wire.write(0xAD);
+    }
+    else
+    {
+      Wire.write(reqResData[n]);
+    }
+    if (isCHK == 0 && n + 1 == reqResLen)
+    {
+      isCHK = 1;
+      reqResLen++;
+      reqResData[n + 1] = ~sum;
+    }
+  }
+  Wire.write(0x2E);
 }
 
 void setup()
