@@ -45,15 +45,6 @@ static const PROGMEM u1_t NWKSKEY[16] = {0x28, 0xAE, 0xD2, 0x2B, 0x7E, 0x15, 0x1
 static const u1_t PROGMEM APPSKEY[16] = {0x16, 0x28, 0xAE, 0x2B, 0x7E, 0x15, 0xD2, 0xA6, 0xAB, 0xF7, 0xCF, 0x4F, 0x3C, 0x15, 0x88, 0x09};
 static const u4_t DEVADDR = 0x81302399; // <-- Change this address for every node!
 
-void do_send(osjob_t *j);
-
-static uint8_t mydata[] = "Hello, world!";
-static osjob_t sendjob;
-
-// Schedule TX every this many seconds (might become longer due to duty
-// cycle limitations).
-const unsigned TX_INTERVAL = 300;
-
 // Pin mapping
 const lmic_pinmap lmic_pins = {
     .nss = 10, // chip select
@@ -67,23 +58,6 @@ const lmic_pinmap lmic_pins = {
 uint8_t reqResData[100];
 uint8_t reqResLen;
 
-void do_send(osjob_t *j)
-{
-  // Check if there is not a current TX/RX job running
-  if (LMIC.opmode & OP_TXRXPEND)
-  {
-    Serial.println(F("OP_TXRXPEND, not sending"));
-  }
-  else
-  {
-    // Prepare upstream data transmission at the next possible time.
-    LMIC_setTxData2(1, mydata, sizeof(mydata) - 1, 0);
-    Serial.println(F("Packet queued"));
-  }
-
-  os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL), do_send);
-}
-
 void prepareData(uint8_t CMD)
 {
   switch (CMD)
@@ -95,6 +69,22 @@ void writeData(uint8_t CMD, uint8_t *data, uint8_t len)
 {
   switch (CMD)
   {
+  case CMD_SEND:
+    if (LMIC.opmode & OP_TXRXPEND)
+    {
+      Serial.println(F("OP_TXRXPEND, not sending"));
+      reqResData[0] = 0x04;
+      reqResLen = 1;
+    }
+    else
+    {
+      // Prepare upstream data transmission at the next possible time.
+      LMIC_setTxData2(1, data, len, 0);
+      Serial.println(F("Packet queued"));
+      reqResData[0] = 0x00;
+      reqResLen = 1;
+    }
+    break;
   }
 }
 
@@ -132,6 +122,7 @@ void receiveEvent(int n)
     Serial.println("I2C:Checksum error");
     return;
   }
+  reqResLen = 0;
   if (i == 2)
   { // master want to read data
     prepareData(buff[0]);
@@ -162,8 +153,9 @@ void requestEvent()
     {
       Wire.write(reqResData[n]);
     }
+
     if (isCHK == 0 && n + 1 == reqResLen)
-    {
+    { // another one loop for checksum
       isCHK = 1;
       reqResLen++;
       reqResData[n + 1] = ~sum;
@@ -215,9 +207,6 @@ void setup()
   // Set data rate and transmit power for uplink
   // varite data rate is SF8, SF9, SF10 & SF11
   LMIC_setDrTxpow(DR_SF12, 14);
-
-  // Start job
-  do_send(&sendjob);
 }
 
 void loop()

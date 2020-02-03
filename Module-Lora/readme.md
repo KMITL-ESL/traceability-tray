@@ -64,6 +64,15 @@ LSB of Sum = 0x05
 Inverted (=Checksum) = 0xFA
 ```
 
+### Status code
+| status | des                         |
+| :----: | --------------------------- |
+|  0x00  | No error                    |
+|  0x01  | worg data size              |
+|  0x02  | unknown command             |
+|  0x03  | no access for this commannd |
+|  0x04  | command not reeady          |
+
 ## Command
 ### General
 | command | code  | des         | can | res  |
