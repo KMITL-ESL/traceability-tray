@@ -55,7 +55,7 @@ const lmic_pinmap lmic_pins = {
     .rssi_cal = 10,
 };
 
-uint8_t reqResData[100];
+uint8_t reqResData[20];
 uint8_t reqResLen;
 
 void prepareData(uint8_t CMD)
@@ -90,6 +90,7 @@ void writeData(uint8_t CMD, uint8_t *data, uint8_t len)
 
 void receiveEvent(int n)
 {
+  Serial.println("in");
   if (Wire.read() != 0x2E)
   { // Start byte
     while (Wire.available())
@@ -97,9 +98,10 @@ void receiveEvent(int n)
     Serial.println("I2C:Start byte not match");
     return;
   }
-  uint8_t buff[200];
+  uint8_t buff[20];
   uint8_t i = 0;
   uint8_t sum = 0;
+  Serial.println("in");
   while (Wire.peek() != 0x2E)
   { // loop untill stop byte
     buff[i] = Wire.read();
@@ -117,6 +119,7 @@ void receiveEvent(int n)
     i++;
   }
   Wire.read(); // read stop byte
+  Serial.println("in");
   if (sum != 0xFF)
   { // sum all data with checksum shoud be 0xFF
     Serial.println("I2C:Checksum error");
@@ -174,7 +177,7 @@ void setup()
   Wire.onReceive(receiveEvent);
   Wire.onRequest(requestEvent);
 
-  delay(100); // per sample code on RF_95 test
+  // delay(100); // per sample code on RF_95 test
   Serial.println(F("Starting"));
 
   // LMIC init
