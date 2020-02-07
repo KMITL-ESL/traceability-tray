@@ -25,7 +25,7 @@ i2c write
 
 i2c read
      ┌─┬───────┬─┲━┳━━━━━━━━┱─┲━━━━━━━━┱─┲━━━━━━━━┱─┐
-···  │s│address│r┃A┃  0x2E  ┃A┃  size  ┃A┃ Data 0 ┃A│   ···
+···  │s│address│r┃A┃  0x2E  ┃A┃ status ┃A┃ Data 0 ┃A│   ···
    ──┴─┴───────┴─┺━┻━━━━━━━━┹─┺━━━━━━━━┹─┺━━━━━━━━┹─┴───
      ┏━━━━━━━━┱─┲━━━━━━━━┱─┲━━━━━━━━┱─┬─┐
 ···  ┃Data n-1┃A┃chk sum ┃A┃  0x2E  ┃Ã│P│
@@ -73,16 +73,19 @@ Inverted (=Checksum) = 0xFA
 |  0x05  | Internal error in the code. Should not happen. |
 |  0x06  | Invalid argument.                              |
 |  0x07  | The CRC_A does not match.                      |
+|  0xD1  | I2C : Start byte not match                     |
+|  0xD2  | I2C : Byte-stuffing Error                      |
+|  0xD3  | I2C : Checksum error                           |
 |  0xFF  | A MIFARE PICC responded with NAK.              |
 | Other  | Unknown error                                  |
 
 ## Command
 ### General
-| command | code  | des         | can | res  |
-| :-----: | ----- | ----------- | --- | ---- |
-|  0x00   | DTYPE | Device type | r   | 0x02 |
-|  0x01   | VER   | Version     | r   | 0x00 |
-|  0x02   | RESET | Reset       | w   |      |
+| command | code        | des         | can | res  |
+| :-----: | ----------- | ----------- | --- | ---- |
+|  0x00   | Device_Type | Device type | r   | 0x02 |
+|  0x01   | Version     | Version     | r   | 0x00 |
+|  0x02   | Reset       | Reset       | w   |      |
 
 ### Functions for manipulating the MFRC522
 | command | code                | des               | can | res |

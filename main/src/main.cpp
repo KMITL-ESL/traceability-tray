@@ -17,29 +17,22 @@ void loop()
     if (in == 's')
     {
       Serial.println("hihi");
-      Wire.beginTransmission(0x11);
+      Wire.beginTransmission(0x12);
       Wire.write(0x2E);
       uint8_t buff[20];
-      buff[0] = 0x28;
-      buff[1] = 5;
-      buff[2] = 'h';
-      buff[3] = 'e';
-      buff[4] = 'l';
-      buff[5] = 'l';
-      buff[6] = 'o';
-
-      buff[7] = 0;
-      for (int i = 0; i < 8; i++)
+      buff[0] = 0x00;
+      buff[1] = 0;
+      for (int i = 0; i < 2; i++)
       {
         char now = buff[i];
-        if (i != 7)
+        if (i != 1)
         {
-          buff[7] += now;
+          buff[1] += now;
         }
         else
         {
-          buff[7] = ~buff[7];
-          now = buff[7];
+          buff[1] = ~buff[1];
+          now = buff[1];
         }
         if (now == 0x2E)
         {
@@ -58,6 +51,20 @@ void loop()
       }
       Wire.write(0x2E);
       Wire.endTransmission();
+
+      Serial.print("Get : ");
+      Wire.requestFrom(0x12, 10); // request 6 bytes from slave device #8
+
+      while (Wire.available())
+      {                      // slave may send less than requested
+        int c = Wire.read(); // receive a byte as character
+        if (c != -1)
+        {
+          Serial.print(c); // print the character
+          Serial.print(" ");
+        }
+      }
+      Serial.println();
     }
   }
 }
