@@ -68,50 +68,6 @@ void dump_byte_array(byte *buffer, byte bufferSize)
   }
 }
 
-/**
- * Ensure that a given block is formatted as a Value Block.
- */
-void formatValueBlock(byte blockAddr)
-{
-  byte buffer[18];
-  byte size = sizeof(buffer);
-  MFRC522::StatusCode status;
-
-  Serial.print(F("Reading block "));
-  Serial.println(blockAddr);
-  status = mfrc522.MIFARE_Read(blockAddr, buffer, &size);
-  if (status != MFRC522::STATUS_OK)
-  {
-    Serial.print(F("MIFARE_Read() failed: "));
-    Serial.println(mfrc522.GetStatusCodeName(status));
-    return;
-  }
-
-  if ((buffer[0] == (byte)~buffer[4]) && (buffer[1] == (byte)~buffer[5]) && (buffer[2] == (byte)~buffer[6]) && (buffer[3] == (byte)~buffer[7])
-
-      && (buffer[0] == buffer[8]) && (buffer[1] == buffer[9]) && (buffer[2] == buffer[10]) && (buffer[3] == buffer[11])
-
-      && (buffer[12] == (byte)~buffer[13]) && (buffer[12] == buffer[14]) && (buffer[12] == (byte)~buffer[15]))
-  {
-    Serial.println(F("Block has correct Value Block format."));
-  }
-  else
-  {
-    Serial.println(F("Formatting as Value Block..."));
-    byte valueBlock[] = {
-        0, 0, 0, 0,
-        255, 255, 255, 255,
-        0, 0, 0, 0,
-        blockAddr, ~blockAddr, blockAddr, ~blockAddr};
-    status = mfrc522.MIFARE_Write(blockAddr, valueBlock, 16);
-    if (status != MFRC522::STATUS_OK)
-    {
-      Serial.print(F("MIFARE_Write() failed: "));
-      Serial.println(mfrc522.GetStatusCodeName(status));
-    }
-  }
-}
-
 uint8_t reqResData[200];
 uint8_t reqResLen;
 
@@ -154,7 +110,7 @@ void receiveEvent(int n)
   uint8_t i = 0;
   uint8_t sum = 0;
   while (Wire.peek() != 0x2E && Wire.available())
-  { // loop untill stop byte
+  { // loop until stop byte
     buff[i] = Wire.read();
     if (buff[i] == 0x2D)
     { // byte-stuffing
@@ -171,7 +127,7 @@ void receiveEvent(int n)
   }
   Wire.read(); // read stop byte
   if (sum != 0xFF)
-  { // sum all data with checksum shoud be 0xFF
+  { // sum all data with checksum should be 0xFF
     Serial.println("I2C:Checksum error");
     return;
   }
@@ -221,7 +177,7 @@ void setup()
 {
   Serial.begin(2000000); // Initialize serial communications with the PC
   while (!Serial)
-    ;                 // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
+    ;                 // Do nothing if no serial port is opened (added for Arduino based on ATMEGA32U4)
   SPI.begin();        // Init SPI bus
   mfrc522.PCD_Init(); // Init MFRC522 card
 

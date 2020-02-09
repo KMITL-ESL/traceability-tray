@@ -1,0 +1,12 @@
+{
+    "words": [
+        "atmega",
+        "mfrc",
+        "ntag",
+        "picc",
+        "println"
+    ],
+    "ignoreWords": [
+        "unbrick"
+    ]
+}
