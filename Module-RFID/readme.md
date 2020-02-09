@@ -73,9 +73,11 @@ Inverted (=Checksum) = 0xFA
 |  0x05  | Internal error in the code. Should not happen. |
 |  0x06  | Invalid argument.                              |
 |  0x07  | The CRC_A does not match.                      |
-|  0xD1  | I2C : Start byte not match                     |
-|  0xD2  | I2C : Byte-stuffing Error                      |
-|  0xD3  | I2C : Checksum error                           |
+|  0xD0  | I2C : Start byte not match                     |
+|  0xD1  | I2C : Byte-stuffing Error                      |
+|  0xD2  | I2C : Checksum error                           |
+|  0xD3  | I2C : Length error                             |
+|  0xF0  | Parameter length not match                     |
 |  0xFF  | A MIFARE PICC responded with NAK.              |
 | Other  | Unknown error                                  |
 
@@ -90,38 +92,38 @@ Inverted (=Checksum) = 0xFA
 ### Functions for manipulating the MFRC522
 | command | code                | des               | can | res |
 | :-----: | ------------------- | ----------------- | --- | --- |
-|  0x10   | PCD_Init            | Init              | w   |
-|  0x11   | PCD_Reset           | Reset             | w   |
-|  0x12   | PCD_AntennaOn       | Antenna On        | w   |
-|  0x13   | PCD_AntennaOff      | Antenna Off       | w   |
+|  0x10   | PCD_Init            | Init              | x   |
+|  0x11   | PCD_Reset           | Reset             | x   |
+|  0x12   | PCD_AntennaOn       | Antenna On        | x   |
+|  0x13   | PCD_AntennaOff      | Antenna Off       | x   |
 |  0x14   | PCD_AntennaGain     | AntennaGain       | rw  |
 |  0x15   | PCD_PerformSelfTest | Perform Self Test | r   |
 
 ### Power control functions
 | command | code              | des             | can | res |
 | :-----: | ----------------- | --------------- | --- | --- |
-|  0x20   | PCD_SoftPowerDown | Soft Power Down | w   |
-|  0x21   | PCD_SoftPowerUp   | Soft Power On   | w   |
+|  0x20   | PCD_SoftPowerDown | Soft Power Down | x   |
+|  0x21   | PCD_SoftPowerUp   | Soft Power On   | x   |
 
 ### Functions for communicating with PICCs
 | command | code      | des  | can | res |
 | :-----: | --------- | ---- | --- | --- |
-|  0x30   | PICC_Halt | Halt | r   |
+|  0x30   | PICC_Halt | Halt | x   |
 
 ### Functions for communicating with MIFARE PICCs
 | command | code                    | des              | can | res |
 | :-----: | ----------------------- | ---------------- | --- | --- |
-|  0x40   | PCD_Authenticate        | Authenticate     | w   |
-|  0x41   | PCD_StopCrypto          | StopCrypto       | w   |
+|  0x40   | PCD_Authenticate        | Authenticate     | x   |
+|  0x41   | PCD_StopCrypto          | StopCrypto       | r   |
 |  0x42   | MIFARE_Read             | Read             | r   |
 |  0x43   | MIFARE_Write            | Write            | w   |
 |  0x44   | MIFARE_Ultralight_Write | Ultralight Write | w   |
 |  0x45   | MIFARE_Decrement        | Decrement        | w   |
 |  0x46   | MIFARE_Increment        | Increment        | w   |
-|  0x47   | MIFARE_Restore          | Restore          | w   |
-|  0x48   | MIFARE_Transfer         | Transfer         | w   |
+|  0x47   | MIFARE_Restore          | Restore          | x   |
+|  0x48   | MIFARE_Transfer         | Transfer         | x   |
 |  0x49   | MIFARE_Value            | get/set value    | rw  |
-|  0x4A   | PCD_NTAG216_AUTH        | PCD_NTAG216_AUTH | r   |
+|  0x4A   | PCD_NTAG216_AUTH        | PCD_NTAG216_AUTH | w   |
 
 ### Support functions
 | command | code                    | des                | can | res |
@@ -129,12 +131,12 @@ Inverted (=Checksum) = 0xFA
 |  0x50   | StatusCodeName          | Status Code Name   | r   |
 |  0x51   | PICC_Type               | PICC Type          | r   |
 |  0x52   | PICC_TypeName           | PICC Type Name     | r   |
-|  0x53   | MIFARE_SetAccessBits    | Set Access Bits    | w   |
+|  0x53   | MIFARE_SetAccessBits    | Set Access Bits    | r   |
 |  0x54   | MIFARE_OpenUidBackdoor  | Open Uid Backdoor  | w   |
 |  0x55   | MIFARE_SetUid           | Set Uid            | w   |
 |  0x56   | MIFARE_UnbrickUidSector | Unbrick Uid Sector | w   |
 
-### Convenience functions - does not add extra functionality
+### Convenience functions
 | command | code                  | des                 | can | res |
 | :-----: | --------------------- | ------------------- | --- | --- |
 |  0x60   | PICC_IsNewCardPresent | Is New Card Present | r   |

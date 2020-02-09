@@ -37,9 +37,11 @@
 #define SS_PIN 10 // Configurable, see typical pin layout above
 
 #define STATUS_Success 0x00
-#define STATUS_I2C_Start_ERR 0xD1
-#define STATUS_I2C_Stuffing_ERR 0xD2
-#define STATUS_I2C_Checksum_ERR 0xD3
+#define STATUS_I2C_Start_ERR 0xD0
+#define STATUS_I2C_Stuffing_ERR 0xD1
+#define STATUS_I2C_Checksum_ERR 0xD2
+#define STATUS_I2C_Length_ERR 0xD3
+#define STATUS_PARAM_Length_ERR 0xF0
 
 #define CMD_Device_Type 0x00
 #define CMD_Version 0x01
@@ -99,34 +101,127 @@ void dump_byte_array(byte *buffer, byte bufferSize)
 uint8_t reqResData[200];
 uint8_t reqResLen;
 
-void prepareData(uint8_t CMD)
+void setResStatus(uint8_t status)
+{
+  reqResData[0] = status;
+  reqResLen = 1;
+}
+
+void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
 {
   switch (CMD)
   {
+  /////////////////////////////////////////////////////////////////////////////////////
+  // General
+  /////////////////////////////////////////////////////////////////////////////////////
   case CMD_Device_Type:
     reqResData[0] = STATUS_Success;
     reqResData[1] = 0x02;
     reqResLen = 2;
-    DEBUG_CMD("Get Device Type");
+    DEBUG_CMD(F("Get Device Type"));
     break;
+
   case CMD_Version:
     reqResData[0] = STATUS_Success;
     reqResData[1] = 0x00;
     reqResLen = 2;
-    DEBUG_CMD("Get Version");
+    DEBUG_CMD(F("Get Version"));
     break;
+
+  /////////////////////////////////////////////////////////////////////////////////////
+  // Functions for manipulating the MFRC522
+  /////////////////////////////////////////////////////////////////////////////////////
   case CMD_PCD_Init:
     mfrc522.PCD_Init();
-    reqResData[0] = STATUS_Success;
-    reqResLen = 1;
-    DEBUG_CMD("PCD_Init");
-  }
-}
+    setResStatus(STATUS_Success);
+    DEBUG_CMD(F("PCD_Init"));
+    break;
 
-void writeData(uint8_t CMD, uint8_t *data, uint8_t len)
-{
-  switch (CMD)
-  {
+  case CMD_PCD_Reset:
+    mfrc522.PCD_Reset();
+    setResStatus(STATUS_Success);
+    DEBUG_CMD(F("PCD_Reset"));
+    break;
+
+  case CMD_PCD_AntennaOn:
+    mfrc522.PCD_AntennaOn();
+    setResStatus(STATUS_Success);
+    DEBUG_CMD(F("PCD_AntennaOn"));
+    break;
+
+  case CMD_PCD_AntennaOff:
+    mfrc522.PCD_AntennaOff();
+    setResStatus(STATUS_Success);
+    DEBUG_CMD(F("PCD_AntennaOff"));
+    break;
+
+  case CMD_PCD_AntennaGain:
+    switch (len)
+    {
+    case 0:
+      reqResData[0] = STATUS_Success;
+      reqResData[1] = mfrc522.PCD_GetAntennaGain();
+      reqResLen = 2;
+      DEBUG_CMD(F("PCD_GetAntennaGain"));
+      break;
+    case 1:
+      mfrc522.PCD_SetAntennaGain(data[0]);
+      setResStatus(STATUS_Success);
+      DEBUG_CMD(F("PCD_SetAntennaGain"));
+      break;
+    default:
+      setResStatus(STATUS_PARAM_Length_ERR);
+      DEBUG_CMD(F("PCD_AntennaGain -> PARAM_Length_ERR"));
+      break;
+    }
+    break;
+
+  case CMD_PCD_PerformSelfTest:
+    reqResData[0] = STATUS_Success;
+    reqResData[1] = mfrc522.PCD_PerformSelfTest();
+    reqResLen = 2;
+    DEBUG_CMD(F("PCD_PerformSelfTest"));
+    break;
+
+  /////////////////////////////////////////////////////////////////////////////////////
+  // Power control functions
+  /////////////////////////////////////////////////////////////////////////////////////
+  case CMD_PCD_SoftPowerDown:
+    mfrc522.PCD_SoftPowerDown();
+    setResStatus(STATUS_Success);
+    DEBUG_CMD(F("PCD_SoftPowerDown"));
+    break;
+
+  case CMD_PCD_SoftPowerUp:
+    mfrc522.PCD_SoftPowerUp();
+    setResStatus(STATUS_Success);
+    DEBUG_CMD(F("PCD_SoftPowerUp"));
+    break;
+
+  /////////////////////////////////////////////////////////////////////////////////////
+  // Functions for communicating with PICCs
+  /////////////////////////////////////////////////////////////////////////////////////
+  case CMD_PICC_Halt:
+    setResStatus(mfrc522.PICC_HaltA());
+    DEBUG_CMD(F("PICC_HaltA"));
+    break;
+
+  /////////////////////////////////////////////////////////////////////////////////////
+  // Convenience functions
+  /////////////////////////////////////////////////////////////////////////////////////
+  case CMD_PICC_IsNewCardPresent:
+    reqResData[0] = STATUS_Success;
+    reqResData[1] = mfrc522.PICC_IsNewCardPresent();
+    reqResLen = 2;
+    DEBUG_CMD(F("PICC_IsNewCardPresent"));
+    break;
+
+  case CMD_PICC_ReadCardSerial:
+    reqResData[0] = STATUS_Success;
+    reqResData[1] = mfrc522.PICC_ReadCardSerial();
+    reqResLen = 2;
+    DEBUG_CMD(F("PICC_ReadCardSerial"));
+    break;
   }
 }
 
@@ -136,46 +231,59 @@ void receiveEvent(int n)
   { // Start byte
     while (Wire.available())
       Wire.read();
-    DEBUG_I2C("I2C:Start byte not match");
+    setResStatus(STATUS_I2C_Start_ERR);
+    DEBUG_I2C(F("Start byte not match"));
     return;
   }
   uint8_t buff[200];
-  uint8_t i = 0;
+  uint8_t len = 0;
   uint8_t sum = 0;
   while (Wire.peek() != 0x2E && Wire.available())
   { // loop until stop byte
-    buff[i] = Wire.read();
-    if (buff[i] == 0x2D)
+    buff[len] = Wire.read();
+    if (buff[len] == 0x2D)
     { // byte-stuffing
       uint8_t temp = Wire.read();
       if (temp == 0xAE)
-        buff[i] = 0x2E;
+        buff[len] = 0x2E;
       else if (temp == 0xAD)
-        buff[i] = 0x2D;
+        buff[len] = 0x2D;
       else
       {
         while (Wire.available())
           Wire.read();
-        DEBUG_I2C("I2C:Byte-stuffing Error");
+        setResStatus(STATUS_I2C_Stuffing_ERR);
+        DEBUG_I2C(F("Byte-stuffing Error"));
         return;
       }
     }
-    sum += buff[i];
-    i++;
+    sum += buff[len];
+    len++;
   }
   Wire.read(); // read stop byte
+
   if (sum != 0xFF)
   { // sum all data with checksum should be 0xFF
-    DEBUG_I2C("I2C:Checksum error");
+    setResStatus(STATUS_I2C_Checksum_ERR);
+    DEBUG_I2C(F("Checksum error"));
     return;
   }
+
+  if (len > 2)
+  {
+    len = len - 3; // length not with CMD, length and checksum
+    if (buff[1] != len)
+    {
+      setResStatus(STATUS_I2C_Length_ERR);
+      DEBUG_I2C(F("Length error"));
+      return;
+    }
+  }
+  else // have only CMD and checksum
+    len = 0;
+
   reqResLen = 0;
-  if (i == 2)
-  { // master want to read data
-    prepareData(buff[0]);
-    return;
-  }
-  writeData(buff[0], &buff[2], buff[1]);
+  prepareData(buff[0], &buff[2], len);
 }
 
 void requestEvent()
