@@ -67,7 +67,7 @@ Inverted (=Checksum) = 0xFA
 | :----: | ---------------------------------------------- |
 |  0x00  | Success.                                       |
 |  0x01  | Error in communication.                        |
-|  0x02  | Collission detected.                           |
+|  0x02  | Collision detected.                            |
 |  0x03  | Timeout in communication.                      |
 |  0x04  | A buffer is not big enough.                    |
 |  0x05  | Internal error in the code. Should not happen. |

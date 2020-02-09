@@ -5,6 +5,34 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
+#ifdef SHOW_DEBUG_CMD
+#define DEBUG_CMD(msg)            \
+  do                              \
+  {                               \
+    Serial.print("DEBUG CMD : "); \
+    Serial.println(msg);          \
+  } while (0)
+#else
+#define DEBUG_CMD(msg) \
+  do                   \
+  {                    \
+  } while (0)
+#endif
+
+#ifdef SHOW_DEBUG_I2C
+#define DEBUG_I2C(msg)            \
+  do                              \
+  {                               \
+    Serial.print("DEBUG I2C : "); \
+    Serial.println(msg);          \
+  } while (0)
+#else
+#define DEBUG_I2C(msg) \
+  do                   \
+  {                    \
+  } while (0)
+#endif
+
 #define RST_PIN 9 // Configurable, see typical pin layout above
 #define SS_PIN 10 // Configurable, see typical pin layout above
 
@@ -79,14 +107,19 @@ void prepareData(uint8_t CMD)
     reqResData[0] = STATUS_Success;
     reqResData[1] = 0x02;
     reqResLen = 2;
-    Serial.println("Get Device Type");
+    DEBUG_CMD("Get Device Type");
     break;
   case CMD_Version:
     reqResData[0] = STATUS_Success;
     reqResData[1] = 0x00;
     reqResLen = 2;
-    Serial.println("Get Version");
+    DEBUG_CMD("Get Version");
     break;
+  case CMD_PCD_Init:
+    mfrc522.PCD_Init();
+    reqResData[0] = STATUS_Success;
+    reqResLen = 1;
+    DEBUG_CMD("PCD_Init");
   }
 }
 
@@ -102,8 +135,8 @@ void receiveEvent(int n)
   if (Wire.read() != 0x2E)
   { // Start byte
     while (Wire.available())
-      continue;
-    Serial.println("I2C:Start byte not match");
+      Wire.read();
+    DEBUG_I2C("I2C:Start byte not match");
     return;
   }
   uint8_t buff[200];
@@ -120,7 +153,12 @@ void receiveEvent(int n)
       else if (temp == 0xAD)
         buff[i] = 0x2D;
       else
-        Serial.println("I2C:Byte-stuffing Error");
+      {
+        while (Wire.available())
+          Wire.read();
+        DEBUG_I2C("I2C:Byte-stuffing Error");
+        return;
+      }
     }
     sum += buff[i];
     i++;
@@ -128,7 +166,7 @@ void receiveEvent(int n)
   Wire.read(); // read stop byte
   if (sum != 0xFF)
   { // sum all data with checksum should be 0xFF
-    Serial.println("I2C:Checksum error");
+    DEBUG_I2C("I2C:Checksum error");
     return;
   }
   reqResLen = 0;
