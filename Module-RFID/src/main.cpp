@@ -81,6 +81,8 @@
 
 #define CMD_PICC_IsNewCardPresent 0x60
 #define CMD_PICC_ReadCardSerial 0x61
+#define CMD_GET_UID 0x62
+#define CMD_GET_SAK 0x63
 
 MFRC522 mfrc522(SS_PIN, RST_PIN); // Create MFRC522 instance.
 
@@ -221,6 +223,21 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
     reqResData[1] = mfrc522.PICC_ReadCardSerial();
     reqResLen = 2;
     DEBUG_CMD(F("PICC_ReadCardSerial"));
+    break;
+
+  case CMD_GET_UID:
+    reqResData[0] = STATUS_Success;
+    reqResData[1] = mfrc522.uid.size;
+    memcpy(&reqResData[2], mfrc522.uid.uidByte, mfrc522.uid.size);
+    reqResLen = mfrc522.uid.size + 2;
+    DEBUG_CMD(F("GET_UID"));
+    break;
+
+  case CMD_GET_SAK:
+    reqResData[0] = STATUS_Success;
+    reqResData[1] = mfrc522.uid.sak;
+    reqResLen = 2;
+    DEBUG_CMD(F("GET_UID"));
     break;
   }
 }
