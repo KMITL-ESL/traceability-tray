@@ -143,3 +143,4 @@ Inverted (=Checksum) = 0xFA
 |  0x61   | PICC_ReadCardSerial   | Read Card Serial    | r   |
 |  0x62   | GET_UID               | get card uid        | r   |
 |  0x63   | GET_SAK               | get card sak        | r   |
+|  0x64   | SET_KEY               | set auth key        | w   |

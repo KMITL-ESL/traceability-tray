@@ -33,6 +33,14 @@
   } while (0)
 #endif
 
+#define CHECK_DATA_SIZE(LEN)               \
+  if (len != LEN)                          \
+  {                                        \
+    setResStatus(STATUS_PARAM_Length_ERR); \
+    DEBUG_CMD(F("PARAM_Length_ERR"));      \
+    break;                                 \
+  }
+
 #define RST_PIN 9 // Configurable, see typical pin layout above
 #define SS_PIN 10 // Configurable, see typical pin layout above
 
@@ -83,10 +91,14 @@
 #define CMD_PICC_ReadCardSerial 0x61
 #define CMD_GET_UID 0x62
 #define CMD_GET_SAK 0x63
+#define CMD_SET_KEY 0x64
+#define CMD_SET_BLK_ADDR 0x65
 
 MFRC522 mfrc522(SS_PIN, RST_PIN); // Create MFRC522 instance.
 
 MFRC522::MIFARE_Key key;
+
+byte blockAddr;
 
 /**
  * Helper routine to dump a byte array as hex values to Serial.
@@ -111,6 +123,11 @@ void setResStatus(uint8_t status)
 
 void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
 {
+  MFRC522::StatusCode status;
+  byte buffer[18];
+  byte size = sizeof(buffer);
+  int32_t value;
+
   switch (CMD)
   {
   /////////////////////////////////////////////////////////////////////////////////////
@@ -209,6 +226,105 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
     break;
 
   /////////////////////////////////////////////////////////////////////////////////////
+  // Functions for communicating with MIFARE PICCs
+  /////////////////////////////////////////////////////////////////////////////////////
+  case CMD_PCD_Authenticate:
+    // <Command>
+    //  <1 byte>
+    CHECK_DATA_SIZE(1);
+    status = mfrc522.PCD_Authenticate(data[0], blockAddr, &key, &(mfrc522.uid));
+    setResStatus(status);
+    DEBUG_CMD(F("PCD_Authenticate"));
+    break;
+
+  case CMD_PCD_StopCrypto:
+    mfrc522.PCD_StopCrypto1();
+    setResStatus(STATUS_Success);
+    DEBUG_CMD(F("PCD_StopCrypto"));
+    break;
+
+  case CMD_MIFARE_Read:
+    status = mfrc522.MIFARE_Read(blockAddr, buffer, &size);
+    reqResData[0] = status;
+    reqResData[1] = size;
+    memcpy(&reqResData[2], buffer, size);
+    reqResLen = size + 2;
+    DEBUG_CMD(F("MIFARE_Read"));
+    break;
+
+  case CMD_MIFARE_Write:
+    CHECK_DATA_SIZE(16);
+    status = mfrc522.MIFARE_Write(blockAddr, data, len);
+    setResStatus(status);
+    DEBUG_CMD(F("MIFARE_Write"));
+    break;
+
+  case CMD_MIFARE_Ultralight_Write:
+    CHECK_DATA_SIZE(4);
+    status = mfrc522.MIFARE_Ultralight_Write(blockAddr, data, len);
+    setResStatus(status);
+    DEBUG_CMD(F("MIFARE_Ultralight_Write"));
+    break;
+
+  case CMD_MIFARE_Decrement:
+    CHECK_DATA_SIZE(4);
+    // use Big-endian
+    value = (int32_t)data[0] << 24 | (int32_t)data[1] << 16 | (int32_t)data[2] << 8 | data[3];
+    status = mfrc522.MIFARE_Decrement(blockAddr, value);
+    setResStatus(status);
+    DEBUG_CMD(F("MIFARE_Decrement"));
+    break;
+
+  case CMD_MIFARE_Increment:
+    CHECK_DATA_SIZE(4);
+    // use Big-endian
+    value = (int32_t)data[0] << 24 | (int32_t)data[1] << 16 | (int32_t)data[2] << 8 | data[3];
+    status = mfrc522.MIFARE_Increment(blockAddr, value);
+    setResStatus(status);
+    DEBUG_CMD(F("MIFARE_Increment"));
+    break;
+
+  case CMD_MIFARE_Restore:
+    status = mfrc522.MIFARE_Restore(blockAddr);
+    setResStatus(status);
+    DEBUG_CMD(F("MIFARE_Restore"));
+    break;
+
+  case CMD_MIFARE_Transfer:
+    status = mfrc522.MIFARE_Transfer(blockAddr);
+    setResStatus(status);
+    DEBUG_CMD(F("MIFARE_Transfer"));
+    break;
+
+  case CMD_MIFARE_Value:
+    switch (len)
+    {
+    case 0:
+      status = mfrc522.MIFARE_GetValue(blockAddr, &value);
+      reqResData[0] = status;
+      reqResData[1] = (value >> 24) & 0xFF;
+      reqResData[2] = (value >> 16) & 0xFF;
+      reqResData[3] = (value >> 8) & 0xFF;
+      reqResData[4] = value & 0xFF;
+      reqResLen = 5;
+      DEBUG_CMD(F("MIFARE_GetValue"));
+      break;
+    case 4:
+      CHECK_DATA_SIZE(4);
+      // use Big-endian
+      value = (int32_t)data[0] << 24 | (int32_t)data[1] << 16 | (int32_t)data[2] << 8 | data[3];
+      status = mfrc522.MIFARE_SetValue(blockAddr, value);
+      setResStatus(status);
+      DEBUG_CMD(F("MIFARE_SetValue"));
+      break;
+    default:
+      setResStatus(STATUS_PARAM_Length_ERR);
+      DEBUG_CMD(F("MIFARE_SetValue -> PARAM_Length_ERR"));
+      break;
+    }
+    break;
+
+  /////////////////////////////////////////////////////////////////////////////////////
   // Convenience functions
   /////////////////////////////////////////////////////////////////////////////////////
   case CMD_PICC_IsNewCardPresent:
@@ -238,6 +354,23 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
     reqResData[1] = mfrc522.uid.sak;
     reqResLen = 2;
     DEBUG_CMD(F("GET_UID"));
+    break;
+
+  case CMD_SET_KEY:
+    CHECK_DATA_SIZE(6);
+    for (byte i = 0; i < 6; i++)
+    {
+      key.keyByte[i] = data[i];
+    }
+    setResStatus(STATUS_Success);
+    DEBUG_CMD(F("SET_KEY"));
+    break;
+
+  case CMD_SET_BLK_ADDR:
+    CHECK_DATA_SIZE(1);
+    blockAddr = data[0];
+    setResStatus(STATUS_Success);
+    DEBUG_CMD(F("SET_BLK_ADDR"));
     break;
   }
 }
