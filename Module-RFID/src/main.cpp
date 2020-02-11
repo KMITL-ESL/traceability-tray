@@ -115,7 +115,7 @@ void formatValueBlock(byte blockAddr)
 uint8_t reqResData[200];
 uint8_t reqResLen;
 
-void prepareData(uint8_t CMD)
+void writeData(uint8_t CMD, uint8_t *data, uint8_t len)
 {
   switch (CMD)
   {
@@ -134,13 +134,6 @@ void prepareData(uint8_t CMD)
   }
 }
 
-void writeData(uint8_t CMD, uint8_t *data, uint8_t len)
-{
-  switch (CMD)
-  {
-  }
-}
-
 void receiveEvent(int n)
 {
   if (Wire.read() != 0x2E)
@@ -154,7 +147,7 @@ void receiveEvent(int n)
   uint8_t i = 0;
   uint8_t sum = 0;
   while (Wire.peek() != 0x2E && Wire.available())
-  { // loop untill stop byte
+  { // loop until stop byte
     buff[i] = Wire.read();
     if (buff[i] == 0x2D)
     { // byte-stuffing
@@ -171,16 +164,11 @@ void receiveEvent(int n)
   }
   Wire.read(); // read stop byte
   if (sum != 0xFF)
-  { // sum all data with checksum shoud be 0xFF
+  { // sum all data with checksum should be 0xFF
     Serial.println("I2C:Checksum error");
     return;
   }
   reqResLen = 0;
-  if (i == 2)
-  { // master want to read data
-    prepareData(buff[0]);
-    return;
-  }
   writeData(buff[0], &buff[2], buff[1]);
 }
 

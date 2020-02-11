@@ -1,0 +1,15 @@
+{
+    "version": "0.1",
+    "language": "en",
+    "words": [
+        "println",
+        "mfrc",
+        "PICC",
+        "Arduinos",
+        "ATMEGA",
+        "NTAG"
+    ],
+    "ignoreWords": [
+        "unbrick"
+    ]
+}

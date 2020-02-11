@@ -16,7 +16,7 @@ void loop()
     char in = Serial.read();
     if (in == 's')
     {
-      Serial.println("hihi");
+      Serial.println("hi hi");
       Wire.beginTransmission(0x12);
       Wire.write(0x2E);
       uint8_t buff[20];
