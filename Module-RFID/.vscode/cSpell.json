@@ -2,12 +2,13 @@
     "version": "0.1",
     "language": "en",
     "words": [
-        "println",
+        "atmega",
         "mfrc",
-        "PICC",
-        "Arduinos",
-        "ATMEGA",
-        "NTAG"
+        "mifare",
+        "ntag",
+        "picc",
+        "piccs",
+        "println"
     ],
     "ignoreWords": [
         "unbrick"
