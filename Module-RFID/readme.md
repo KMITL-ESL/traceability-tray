@@ -137,11 +137,11 @@ Inverted (=Checksum) = 0xFA
 |  0x56   | MIFARE_UnbrickUidSector | Unbrick Uid Sector | w   | **  |
 
 ### Convenience functions
-| command | code                  | des                 | can | res |
-| :-----: | --------------------- | ------------------- | --- | --- |
-|  0x60   | PICC_IsNewCardPresent | Is New Card Present | r   |
-|  0x61   | PICC_ReadCardSerial   | Read Card Serial    | r   |
-|  0x62   | GET_UID               | get card uid        | r   |
-|  0x63   | GET_SAK               | get card sak        | r   |
-|  0x64   | SET_KEY               | set auth key        | w   |
-|  0x65   | SET_BLK_ADDR          | set block address   | w   |
+| command | code                  | des                   | can | res |
+| :-----: | --------------------- | --------------------- | --- | --- |
+|  0x60   | PICC_IsNewCardPresent | Is New Card Present   | r   |
+|  0x61   | PICC_ReadCardSerial   | Read Card Serial      | r   |
+|  0x62   | DATA_UID              | do with card uid      | rw  |
+|  0x63   | DATA_SAK              | do with card sak      | rw  |
+|  0x64   | DATA_KEY              | do with auth key      | rw  |
+|  0x65   | DATA_BLK_ADDR         | do with block address | rw  |

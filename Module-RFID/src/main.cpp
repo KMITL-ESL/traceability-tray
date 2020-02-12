@@ -90,10 +90,10 @@
 
 #define CMD_PICC_IsNewCardPresent 0x60
 #define CMD_PICC_ReadCardSerial 0x61
-#define CMD_GET_UID 0x62
-#define CMD_GET_SAK 0x63
-#define CMD_SET_KEY 0x64
-#define CMD_SET_BLK_ADDR 0x65
+#define CMD_DATA_UID 0x62
+#define CMD_DATA_SAK 0x63
+#define CMD_DATA_KEY 0x64
+#define CMD_DATA_BLK_ADDR 0x65
 
 MFRC522 mfrc522(SS_PIN, RST_PIN); // Create MFRC522 instance.
 
@@ -349,37 +349,94 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
     DEBUG_CMD(F("PICC_ReadCardSerial"));
     break;
 
-  case CMD_GET_UID:
-    reqResData[0] = STATUS_Success;
-    reqResData[1] = mfrc522.uid.size;
-    memcpy(&reqResData[2], mfrc522.uid.uidByte, mfrc522.uid.size);
-    reqResLen = mfrc522.uid.size + 2;
-    DEBUG_CMD(F("GET_UID"));
-    break;
-
-  case CMD_GET_SAK:
-    reqResData[0] = STATUS_Success;
-    reqResData[1] = 1;
-    reqResData[2] = mfrc522.uid.sak;
-    reqResLen = 3;
-    DEBUG_CMD(F("GET_UID"));
-    break;
-
-  case CMD_SET_KEY:
-    CHECK_DATA_SIZE(6);
-    for (byte i = 0; i < 6; i++)
+  case CMD_DATA_UID:
+    switch (len)
     {
-      key.keyByte[i] = data[i];
+    case 0:
+      reqResData[0] = STATUS_Success;
+      reqResData[1] = mfrc522.uid.size;
+      memcpy(&reqResData[2], mfrc522.uid.uidByte, mfrc522.uid.size);
+      reqResLen = mfrc522.uid.size + 2;
+      DEBUG_CMD(F("GET_UID"));
+      break;
+    case 4:
+    case 7:
+    case 10:
+      memcpy(mfrc522.uid.uidByte, data, len);
+      setResStatus(STATUS_Success);
+      DEBUG_CMD(F("SET_UID"));
+      break;
+    default:
+      setResStatus(STATUS_PARAM_Length_ERR);
+      DEBUG_CMD(F("DATA_UID -> PARAM_Length_ERR"));
+      break;
     }
-    setResStatus(STATUS_Success);
-    DEBUG_CMD(F("SET_KEY"));
     break;
 
-  case CMD_SET_BLK_ADDR:
-    CHECK_DATA_SIZE(1);
-    blockAddr = data[0];
-    setResStatus(STATUS_Success);
-    DEBUG_CMD(F("SET_BLK_ADDR"));
+  case CMD_DATA_SAK:
+    switch (len)
+    {
+    case 0:
+      reqResData[0] = STATUS_Success;
+      reqResData[1] = 1;
+      reqResData[2] = mfrc522.uid.sak;
+      reqResLen = 3;
+      DEBUG_CMD(F("GET_SAK"));
+      break;
+    case 1:
+      mfrc522.uid.sak = data[0];
+      setResStatus(STATUS_Success);
+      DEBUG_CMD(F("SET_SAK"));
+      break;
+    default:
+      setResStatus(STATUS_PARAM_Length_ERR);
+      DEBUG_CMD(F("DATA_SAK -> PARAM_Length_ERR"));
+      break;
+    }
+    break;
+
+  case CMD_DATA_KEY:
+    switch (len)
+    {
+    case 0:
+      reqResData[0] = STATUS_Success;
+      reqResData[1] = 1;
+      memcpy(reqResData + 2, key.keyByte, 6);
+      reqResLen = 2 + 6;
+      DEBUG_CMD(F("GET_KEY"));
+      break;
+    case 6:
+      memcpy(key.keyByte, data, 6);
+      setResStatus(STATUS_Success);
+      DEBUG_CMD(F("SET_KEY"));
+      break;
+    default:
+      setResStatus(STATUS_PARAM_Length_ERR);
+      DEBUG_CMD(F("DATA_KEY -> PARAM_Length_ERR"));
+      break;
+    }
+    break;
+
+  case CMD_DATA_BLK_ADDR:
+    switch (len)
+    {
+    case 0:
+      reqResData[0] = STATUS_Success;
+      reqResData[1] = 1;
+      reqResData[2] = blockAddr;
+      reqResLen = 3;
+      DEBUG_CMD(F("GET_BLK_ADDR"));
+      break;
+    case 1:
+      blockAddr = data[0];
+      setResStatus(STATUS_Success);
+      DEBUG_CMD(F("SET_BLK_ADDR"));
+      break;
+    default:
+      setResStatus(STATUS_PARAM_Length_ERR);
+      DEBUG_CMD(F("DATA_BLK_ADDR -> PARAM_Length_ERR"));
+      break;
+    }
     break;
   }
 }

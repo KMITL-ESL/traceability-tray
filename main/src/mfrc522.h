@@ -51,10 +51,10 @@
 
 #define CMD_PICC_IsNewCardPresent 0x60
 #define CMD_PICC_ReadCardSerial 0x61
-#define CMD_GET_UID 0x62
-#define CMD_GET_SAK 0x63
-#define CMD_SET_KEY 0x64
-#define CMD_SET_BLK_ADDR 0x65
+#define CMD_DATA_UID 0x62
+#define CMD_DATA_SAK 0x63
+#define CMD_DATA_KEY 0x64
+#define CMD_DATA_BLK_ADDR 0x65
 
 class MFRC522
 {
@@ -252,8 +252,8 @@ public:
 
     void GET_UID();
     void GET_SAK();
-    void SET_KEY();
-    void SET_BLK_ADDR();
+    void SET_KEY(MIFARE_Key *key);
+    void SET_BLK_ADDR(byte blockAddr);
 
     Uid clientUid;
     MIFARE_Key clientKey;
