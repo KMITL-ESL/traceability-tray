@@ -252,7 +252,7 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
     status = mfrc522.MIFARE_Read(blockAddr, buffer, &size);
     reqResData[0] = status;
     reqResData[1] = size;
-    memcpy(&reqResData[2], buffer, size);
+    memcpy(reqResData + 2, buffer, size);
     reqResLen = size + 2;
     DEBUG_CMD(F("MIFARE_Read"));
     break;
@@ -355,7 +355,7 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
     case 0:
       reqResData[0] = STATUS_Success;
       reqResData[1] = mfrc522.uid.size;
-      memcpy(&reqResData[2], mfrc522.uid.uidByte, mfrc522.uid.size);
+      memcpy(reqResData + 2, mfrc522.uid.uidByte, mfrc522.uid.size);
       reqResLen = mfrc522.uid.size + 2;
       DEBUG_CMD(F("GET_UID"));
       break;
