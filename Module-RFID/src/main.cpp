@@ -136,15 +136,17 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
   /////////////////////////////////////////////////////////////////////////////////////
   case CMD_Device_Type:
     reqResData[0] = STATUS_Success;
-    reqResData[1] = 0x02;
-    reqResLen = 2;
+    reqResData[1] = 1;
+    reqResData[2] = 0x02;
+    reqResLen = 3;
     DEBUG_CMD(F("Get Device Type"));
     break;
 
   case CMD_Version:
     reqResData[0] = STATUS_Success;
-    reqResData[1] = 0x00;
-    reqResLen = 2;
+    reqResData[1] = 1;
+    reqResData[2] = 0x00;
+    reqResLen = 3;
     DEBUG_CMD(F("Get Version"));
     break;
 
@@ -180,8 +182,9 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
     {
     case 0:
       reqResData[0] = STATUS_Success;
-      reqResData[1] = mfrc522.PCD_GetAntennaGain();
-      reqResLen = 2;
+      reqResData[1] = 1;
+      reqResData[2] = mfrc522.PCD_GetAntennaGain();
+      reqResLen = 3;
       DEBUG_CMD(F("PCD_GetAntennaGain"));
       break;
     case 1:
@@ -198,8 +201,9 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
 
   case CMD_PCD_PerformSelfTest:
     reqResData[0] = STATUS_Success;
-    reqResData[1] = mfrc522.PCD_PerformSelfTest();
-    reqResLen = 2;
+    reqResData[1] = 1;
+    reqResData[2] = mfrc522.PCD_PerformSelfTest();
+    reqResLen = 3;
     DEBUG_CMD(F("PCD_PerformSelfTest"));
     break;
 
@@ -303,11 +307,12 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
     case 0:
       status = mfrc522.MIFARE_GetValue(blockAddr, &value);
       reqResData[0] = status;
-      reqResData[1] = (value >> 24) & 0xFF;
-      reqResData[2] = (value >> 16) & 0xFF;
-      reqResData[3] = (value >> 8) & 0xFF;
-      reqResData[4] = value & 0xFF;
-      reqResLen = 5;
+      reqResData[1] = 4;
+      reqResData[2] = (value >> 24) & 0xFF;
+      reqResData[3] = (value >> 16) & 0xFF;
+      reqResData[4] = (value >> 8) & 0xFF;
+      reqResData[5] = value & 0xFF;
+      reqResLen = 2 + 4;
       DEBUG_CMD(F("MIFARE_GetValue"));
       break;
     case 4:
@@ -330,15 +335,17 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
   /////////////////////////////////////////////////////////////////////////////////////
   case CMD_PICC_IsNewCardPresent:
     reqResData[0] = STATUS_Success;
-    reqResData[1] = mfrc522.PICC_IsNewCardPresent();
-    reqResLen = 2;
+    reqResData[1] = 1;
+    reqResData[2] = mfrc522.PICC_IsNewCardPresent();
+    reqResLen = 3;
     DEBUG_CMD(F("PICC_IsNewCardPresent"));
     break;
 
   case CMD_PICC_ReadCardSerial:
     reqResData[0] = STATUS_Success;
-    reqResData[1] = mfrc522.PICC_ReadCardSerial();
-    reqResLen = 2;
+    reqResData[1] = 1;
+    reqResData[2] = mfrc522.PICC_ReadCardSerial();
+    reqResLen = 3;
     DEBUG_CMD(F("PICC_ReadCardSerial"));
     break;
 
@@ -352,8 +359,9 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
 
   case CMD_GET_SAK:
     reqResData[0] = STATUS_Success;
-    reqResData[1] = mfrc522.uid.sak;
-    reqResLen = 2;
+    reqResData[1] = 1;
+    reqResData[2] = mfrc522.uid.sak;
+    reqResLen = 3;
     DEBUG_CMD(F("GET_UID"));
     break;
 

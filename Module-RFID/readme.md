@@ -144,3 +144,4 @@ Inverted (=Checksum) = 0xFA
 |  0x62   | GET_UID               | get card uid        | r   |
 |  0x63   | GET_SAK               | get card sak        | r   |
 |  0x64   | SET_KEY               | set auth key        | w   |
+|  0x65   | SET_BLK_ADDR          | set block address   | w   |

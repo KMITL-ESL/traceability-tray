@@ -128,6 +128,30 @@ public:
         PICC_TYPE_NOT_COMPLETE = 0xff // SAK indicates UID is not complete.
     };
 
+    // MIFARE constants that does not fit anywhere else
+    enum MIFARE_Misc
+    {
+        MF_ACK = 0xA,   // The MIFARE Classic uses a 4 bit ACK/NAK. Any other value than 0xA is NAK.
+        MF_KEY_SIZE = 6 // A Mifare Crypto1 key is 6 bytes.
+    };
+
+    // PICC types we can detect. Remember to update PICC_GetTypeName() if you add more.
+    // last value set to 0xff, then compiler uses less ram, it seems some optimisations are triggered
+    enum PICC_Type : byte
+    {
+        PICC_TYPE_UNKNOWN,
+        PICC_TYPE_ISO_14443_4,        // PICC compliant with ISO/IEC 14443-4
+        PICC_TYPE_ISO_18092,          // PICC compliant with ISO/IEC 18092 (NFC)
+        PICC_TYPE_MIFARE_MINI,        // MIFARE Classic protocol, 320 bytes
+        PICC_TYPE_MIFARE_1K,          // MIFARE Classic protocol, 1KB
+        PICC_TYPE_MIFARE_4K,          // MIFARE Classic protocol, 4KB
+        PICC_TYPE_MIFARE_UL,          // MIFARE Ultralight or Ultralight C
+        PICC_TYPE_MIFARE_PLUS,        // MIFARE Plus
+        PICC_TYPE_MIFARE_DESFIRE,     // MIFARE DESFire
+        PICC_TYPE_TNP3XXX,            // Only mentioned in NXP AN 10833 MIFARE Type Identification Procedure
+        PICC_TYPE_NOT_COMPLETE = 0xff // SAK indicates UID is not complete.
+    };
+
     // Return codes from the functions in this class. Remember to update GetStatusCodeName() if you add more.
     // last value set to 0xff, then compiler uses less ram, it seems some optimisations are triggered
     enum StatusCode : byte
@@ -225,6 +249,19 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////
     virtual bool PICC_IsNewCardPresent();
     virtual bool PICC_ReadCardSerial();
+
+    void GET_UID();
+    void GET_SAK();
+    void SET_KEY();
+    void SET_BLK_ADDR();
+
+    Uid clientUid;
+    MIFARE_Key clientKey;
+    byte clientBlockAddr;
+
+    void checkAndChangeUID(Uid *uid);
+    void checkAndChangeKey(MIFARE_Key *key);
+    void checkAndChangeBlockAddr(byte blockAddr);
 };
 
 #endif
