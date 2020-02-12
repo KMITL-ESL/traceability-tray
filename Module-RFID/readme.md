@@ -87,7 +87,7 @@ Inverted (=Checksum) = 0xFA
 | :-----: | ----------- | ----------- | --- | ---- |
 |  0x00   | Device_Type | Device type | r   | 0x02 |
 |  0x01   | Version     | Version     | r   | 0x00 |
-|  0x02   | Reset       | Reset       | w   |      |
+|  0x02   | Reset       | Reset       | w   | **   |
 
 ### Functions for manipulating the MFRC522
 | command | code                | des               | can | res |
@@ -123,18 +123,18 @@ Inverted (=Checksum) = 0xFA
 |  0x47   | MIFARE_Restore          | Restore          | x   |
 |  0x48   | MIFARE_Transfer         | Transfer         | x   |
 |  0x49   | MIFARE_Value            | get/set value    | rw  |
-|  0x4A   | PCD_NTAG216_AUTH        | PCD_NTAG216_AUTH | w   |
+|  0x4A   | PCD_NTAG216_AUTH        | PCD_NTAG216_AUTH | w   | **  |
 
 ### Support functions
 | command | code                    | des                | can | res |
 | :-----: | ----------------------- | ------------------ | --- | --- |
-|  0x50   | StatusCodeName          | Status Code Name   | r   |
-|  0x51   | PICC_Type               | PICC Type          | r   |
-|  0x52   | PICC_TypeName           | PICC Type Name     | r   |
-|  0x53   | MIFARE_SetAccessBits    | Set Access Bits    | r   |
-|  0x54   | MIFARE_OpenUidBackdoor  | Open Uid Backdoor  | w   |
-|  0x55   | MIFARE_SetUid           | Set Uid            | w   |
-|  0x56   | MIFARE_UnbrickUidSector | Unbrick Uid Sector | w   |
+|  0x50   | StatusCodeName          | Status Code Name   | r   | **  |
+|  0x51   | PICC_Type               | PICC Type          | r   | **  |
+|  0x52   | PICC_TypeName           | PICC Type Name     | r   | **  |
+|  0x53   | MIFARE_SetAccessBits    | Set Access Bits    | r   | **  |
+|  0x54   | MIFARE_OpenUidBackdoor  | Open Uid Backdoor  | w   | **  |
+|  0x55   | MIFARE_SetUid           | Set Uid            | w   | **  |
+|  0x56   | MIFARE_UnbrickUidSector | Unbrick Uid Sector | w   | **  |
 
 ### Convenience functions
 | command | code                  | des                 | can | res |
