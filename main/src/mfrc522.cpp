@@ -444,3 +444,35 @@ MFRC522::StatusCode MFRC522::MIFARE_SetValue(byte blockAddr, int32_t value)
   checkAndChangeBlockAddr(blockAddr);
   return (MFRC522::StatusCode)exeCMD(CMD_MIFARE_Value, buffer, 4, nullptr, nullptr, 0);
 } // End MIFARE_SetValue()
+
+/////////////////////////////////////////////////////////////////////////////////////
+// Convenience functions - does not add extra functionality
+/////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns true if a PICC responds to PICC_CMD_REQA.
+ * Only "new" cards in state IDLE are invited. Sleeping cards in state HALT are ignored.
+ * 
+ * @return bool
+ */
+bool MFRC522::PICC_IsNewCardPresent()
+{
+  byte res = 0;
+  exeCMD(CMD_PICC_IsNewCardPresent, nullptr, 0, &res, nullptr, 1);
+  return res;
+} // End PICC_IsNewCardPresent()
+
+/**
+ * Simple wrapper around PICC_Select.
+ * Returns true if a UID could be read.
+ * Remember to call PICC_IsNewCardPresent(), PICC_RequestA() or PICC_WakeupA() first.
+ * The read UID is available in the class variable uid.
+ * 
+ * @return bool
+ */
+bool MFRC522::PICC_ReadCardSerial()
+{
+  byte res = 0;
+  exeCMD(CMD_PICC_ReadCardSerial, nullptr, 0, &res, nullptr, 1);
+  return res;
+} // End
