@@ -2,9 +2,10 @@
     "version": "0.1",
     "language": "en",
     "words": [
-        "println",
         "Arduinos",
-        "ATMEGA"
+        "ATMEGA",
+        "mfrc",
+        "println"
     ],
     "ignoreWords": [
         "unbrick"
