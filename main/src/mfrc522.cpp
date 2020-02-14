@@ -418,7 +418,7 @@ MFRC522::StatusCode MFRC522::MIFARE_GetValue(byte blockAddr, int32_t *value)
 {
   uint8_t buffer[4];
   checkAndChangeBlockAddr(blockAddr);
-  MFRC522::StatusCode status = (MFRC522::StatusCode)exeCMD(CMD_MIFARE_Value, nullptr, 0, buffer, nullptr, 0);
+  MFRC522::StatusCode status = (MFRC522::StatusCode)exeCMD(CMD_MIFARE_Value, nullptr, 0, buffer, nullptr, 4);
   *value = (int32_t)buffer[0] << 24 | (int32_t)buffer[1] << 16 | (int32_t)buffer[2] << 8 | buffer[3];
   return status;
 } // End MIFARE_GetValue()
@@ -474,5 +474,97 @@ bool MFRC522::PICC_ReadCardSerial()
 {
   byte res = 0;
   exeCMD(CMD_PICC_ReadCardSerial, nullptr, 0, &res, nullptr, 1);
+  getUidClient();
+  getSakClient();
+  memcpy(&uid, &clientUid, sizeof(uid));
   return res;
 } // End
+
+MFRC522::StatusCode MFRC522::getUidClient()
+{
+  return (MFRC522::StatusCode)exeCMD(CMD_DATA_UID, nullptr, 0, clientUid.uidByte, &clientUid.size, 10);
+}
+MFRC522::StatusCode MFRC522::setUidClient()
+{
+  return (MFRC522::StatusCode)exeCMD(CMD_DATA_UID, clientUid.uidByte, clientUid.size, nullptr, nullptr, 0);
+}
+MFRC522::StatusCode MFRC522::getSakClient()
+{
+  return (MFRC522::StatusCode)exeCMD(CMD_DATA_SAK, nullptr, 0, &clientUid.sak, nullptr, 1);
+}
+MFRC522::StatusCode MFRC522::setSakClient()
+{
+  return (MFRC522::StatusCode)exeCMD(CMD_DATA_SAK, &clientUid.sak, 1, nullptr, nullptr, 0);
+}
+MFRC522::StatusCode MFRC522::getKeyClient()
+{
+  return (MFRC522::StatusCode)exeCMD(CMD_DATA_KEY, nullptr, 0, clientKey.keyByte, nullptr, MF_KEY_SIZE);
+}
+MFRC522::StatusCode MFRC522::setKeyClient()
+{
+  return (MFRC522::StatusCode)exeCMD(CMD_DATA_KEY, clientKey.keyByte, MF_KEY_SIZE, nullptr, nullptr, 0);
+}
+MFRC522::StatusCode MFRC522::getBlockAddrClient()
+{
+  return (MFRC522::StatusCode)exeCMD(CMD_DATA_BLK_ADDR, nullptr, 0, &clientBlockAddr, nullptr, 1);
+}
+MFRC522::StatusCode MFRC522::setBlockAddrClient()
+{
+  return (MFRC522::StatusCode)exeCMD(CMD_DATA_BLK_ADDR, &clientBlockAddr, 1, nullptr, nullptr, 0);
+}
+
+MFRC522::StatusCode MFRC522::checkAndChangeUID(MFRC522::Uid *new_uid)
+{
+  MFRC522::StatusCode status = STATUS_OK;
+  bool willChange = false;
+  if (new_uid->size != clientUid.size)
+    willChange = true;
+  else
+  {
+    for (uint8_t i = 0; i < clientUid.size; i++)
+    {
+      if (new_uid->uidByte[i] != clientUid.uidByte[i])
+      {
+        willChange = true;
+        break;
+      }
+    }
+  }
+  if (willChange)
+  {
+    memcpy(clientUid.uidByte, new_uid->uidByte, new_uid->size);
+    clientUid.size = new_uid->size;
+
+    status = setUidClient();
+  }
+
+  if (status != STATUS_OK)
+    return status;
+
+  if (new_uid->sak != clientUid.sak)
+  {
+    clientUid.sak = new_uid->sak;
+    return setSakClient();
+  }
+}
+MFRC522::StatusCode MFRC522::checkAndChangeKey(MFRC522::MIFARE_Key *new_key)
+{
+  for (uint8_t i = 0; i < MF_KEY_SIZE; i++)
+  {
+    if (new_key->keyByte[i] != clientKey.keyByte[i])
+    {
+      memcpy(clientKey.keyByte, new_key->keyByte, MF_KEY_SIZE);
+
+      return setKeyClient();
+    }
+  }
+}
+MFRC522::StatusCode MFRC522::checkAndChangeBlockAddr(byte new_blockAddr)
+{
+  if (new_blockAddr != clientBlockAddr)
+  {
+    clientBlockAddr = new_blockAddr;
+
+    return setBlockAddrClient();
+  }
+}

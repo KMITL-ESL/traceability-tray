@@ -230,18 +230,18 @@ public:
     MIFARE_Key clientKey;
     byte clientBlockAddr;
 
-    void getUidClient();
-    void setUidClient();
-    void getSakClient();
-    void setSakClient();
-    void getKeyClient();
-    void setKeyClient();
-    void GetBlockAddrClient();
-    void SetBlockAddrClient();
+    StatusCode getUidClient();
+    StatusCode setUidClient();
+    StatusCode getSakClient();
+    StatusCode setSakClient();
+    StatusCode getKeyClient();
+    StatusCode setKeyClient();
+    StatusCode getBlockAddrClient();
+    StatusCode setBlockAddrClient();
 
-    void checkAndChangeUID(Uid *uid);
-    void checkAndChangeKey(MIFARE_Key *key);
-    void checkAndChangeBlockAddr(byte blockAddr);
+    StatusCode checkAndChangeUID(Uid *uid);
+    StatusCode checkAndChangeKey(MIFARE_Key *key);
+    StatusCode checkAndChangeBlockAddr(byte blockAddr);
 };
 
 #endif
