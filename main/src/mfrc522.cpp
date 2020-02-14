@@ -48,7 +48,6 @@ uint8_t rxData(uint8_t data[], uint8_t *length, uint8_t maxLength)
       Wire.read();
     DEBUG_I2C(F("Start byte not match"));
     return STATUS_I2C_Start_ERR;
-    return;
   }
 
   uint8_t buff[200];
@@ -421,6 +420,7 @@ MFRC522::StatusCode MFRC522::MIFARE_GetValue(byte blockAddr, int32_t *value)
   checkAndChangeBlockAddr(blockAddr);
   MFRC522::StatusCode status = (MFRC522::StatusCode)exeCMD(CMD_MIFARE_Value, nullptr, 0, buffer, nullptr, 0);
   *value = (int32_t)buffer[0] << 24 | (int32_t)buffer[1] << 16 | (int32_t)buffer[2] << 8 | buffer[3];
+  return status;
 } // End MIFARE_GetValue()
 
 /**
