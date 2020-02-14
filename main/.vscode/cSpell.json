@@ -5,9 +5,18 @@
         "Arduinos",
         "ATMEGA",
         "mfrc",
-        "println"
+        "mifare",
+        "ntag",
+        "optimisations",
+        "picc",
+        "piccs",
+        "println",
+        "transceive"
     ],
     "ignoreWords": [
-        "unbrick"
+        "hlta",
+        "reqa",
+        "unbrick",
+        "wupa"
     ]
 }

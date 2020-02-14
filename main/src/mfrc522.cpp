@@ -254,7 +254,7 @@ MFRC522::StatusCode MFRC522::PICC_HaltA()
  */
 MFRC522::StatusCode MFRC522::PCD_Authenticate(byte command,    ///< PICC_CMD_MF_AUTH_KEY_A or PICC_CMD_MF_AUTH_KEY_B
                                               byte blockAddr,  ///< The block number. See numbering in the comments in the .h file.
-                                              MIFARE_Key *key, ///< Pointer to the Crypteo1 key to use (6 bytes)
+                                              MIFARE_Key *key, ///< Pointer to the Crypto1 key to use (6 bytes)
                                               Uid *uid         ///< Pointer to Uid struct. The first 4 bytes of the UID is used.
 )
 {
