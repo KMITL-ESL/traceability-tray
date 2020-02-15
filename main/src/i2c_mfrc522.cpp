@@ -42,6 +42,15 @@ uint8_t rxData(uint8_t data[], uint8_t *length, uint8_t maxLength)
 {
   Wire.requestFrom(0x12, maxLength * 2 + 5);
   // In case all of byte stuffing plus start stop byte
+  uint32_t start = millis();
+  while (!Wire.available())
+  {
+    if (millis() - start > 10)
+    {
+      DEBUG_I2C(F("Timeout"));
+      return 0;
+    }
+  }
   if (Wire.read() != 0x2E)
   { // Start byte
     while (Wire.available())
@@ -127,6 +136,8 @@ uint8_t exeCMD(uint8_t CMD, uint8_t txBuff[], uint8_t txLen, uint8_t rxBuff[], u
   cmd[1] = txLen;
   memcpy(cmd + 2, txBuff, txLen);
   txData(cmd, txLen + 2);
+
+  delayMicroseconds(100);
 
   uint8_t buff[rxMaxLen];
   uint8_t st = rxData(buff, rxLen, rxMaxLen);
@@ -964,9 +975,12 @@ bool MFRC522::PICC_ReadCardSerial()
 {
   byte res = 0;
   exeCMD(CMD_PICC_ReadCardSerial, nullptr, 0, &res, nullptr, 1);
-  getUidClient();
-  getSakClient();
-  memcpy(&uid, &clientUid, sizeof(uid));
+  if (res == 1)
+  {
+    getUidClient();
+    getSakClient();
+    memcpy(&uid, &clientUid, sizeof(uid));
+  }
   return res;
 } // End
 

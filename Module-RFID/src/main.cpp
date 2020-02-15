@@ -563,19 +563,4 @@ void setup()
 
 void loop()
 {
-  // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
-  if (!mfrc522.PICC_IsNewCardPresent())
-    return;
-
-  // Select one of the cards
-  if (!mfrc522.PICC_ReadCardSerial())
-    return;
-
-  // Show some details of the PICC (that is: the tag/card)
-  Serial.print(F("Card UID:"));
-  dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
-  Serial.println();
-  Serial.print(F("PICC type: "));
-  MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
-  Serial.println(mfrc522.PICC_GetTypeName(piccType));
 }
