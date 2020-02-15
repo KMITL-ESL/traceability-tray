@@ -1,9 +1,10 @@
-#include "mfrc522.h"
+#include "i2c_mfrc522.h"
 
 void txData(uint8_t data[], uint8_t length)
 {
   Wire.beginTransmission(0x12);
-  Wire.write(0x2E);                 // start byte
+  Wire.write(0x2E); // start byte
+  data[length] = 0;
   for (int i = 0; i <= length; i++) // last loop for checksum
   {
     uint8_t now = data[i];
@@ -39,9 +40,8 @@ void txData(uint8_t data[], uint8_t length)
 
 uint8_t rxData(uint8_t data[], uint8_t *length, uint8_t maxLength)
 {
-  Wire.requestFrom(0x12, maxLength * 2 + 2);
+  Wire.requestFrom(0x12, maxLength * 2 + 5);
   // In case all of byte stuffing plus start stop byte
-
   if (Wire.read() != 0x2E)
   { // Start byte
     while (Wire.available())
@@ -109,7 +109,7 @@ uint8_t rxData(uint8_t data[], uint8_t *length, uint8_t maxLength)
   }
 
   if (data != nullptr)
-    memcpy(data, &buff[2], min(len, maxLength));
+    memcpy(data, buff + 2, min(len, maxLength));
 
   if (len > maxLength)
     DEBUG_I2C(F("Length is too long then max size"));
@@ -127,8 +127,33 @@ uint8_t exeCMD(uint8_t CMD, uint8_t txBuff[], uint8_t txLen, uint8_t rxBuff[], u
   cmd[1] = txLen;
   memcpy(cmd + 2, txBuff, txLen);
   txData(cmd, txLen + 2);
-  return rxData(rxBuff, rxLen, rxMaxLen);
+  uint8_t buff[rxMaxLen];
+  uint8_t len;
+  uint8_t st = rxData(buff, &len, rxMaxLen);
+  Serial.print("C");
+  Serial.print((int)len);
+  Serial.print("D");
+  Serial.print((int)buff[0], HEX);
+
+  *rxLen = len;
+  memcpy(rxBuff, buff, len);
+
+  Serial.print("A");
+  Serial.print((int)*rxBuff);
+  Serial.print("B");
+  Serial.print((uint32_t)rxBuff, HEX);
+  return st;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////
+// Functions for setting up the Arduino
+/////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Constructor.
+ */
+MFRC522::MFRC522()
+{ // SS is defined in pins_arduino.h, UINT8_MAX means there is no connection from Arduino to MFRC522's reset and power down input
+} // End constructor
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Functions for manipulating the MFRC522
@@ -932,8 +957,12 @@ void MFRC522::MIFARE_SetAccessBits(byte *accessBitBuffer, ///< Pointer to byte 6
  */
 bool MFRC522::PICC_IsNewCardPresent()
 {
-  byte res = 0;
+  uint8_t res = 0;
   exeCMD(CMD_PICC_IsNewCardPresent, nullptr, 0, &res, nullptr, 1);
+  Serial.print(":");
+  Serial.print(res);
+  Serial.print("-");
+  Serial.println((uint32_t)&res, HEX);
   return res;
 } // End PICC_IsNewCardPresent()
 
