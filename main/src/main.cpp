@@ -56,8 +56,6 @@ void loop()
   if (!rfid.PICC_IsNewCardPresent())
     return;
 
-  delay(100);
-  return;
   // Verify if the NUID has been readed
   if (!rfid.PICC_ReadCardSerial())
     return;

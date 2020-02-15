@@ -127,21 +127,11 @@ uint8_t exeCMD(uint8_t CMD, uint8_t txBuff[], uint8_t txLen, uint8_t rxBuff[], u
   cmd[1] = txLen;
   memcpy(cmd + 2, txBuff, txLen);
   txData(cmd, txLen + 2);
+
   uint8_t buff[rxMaxLen];
-  uint8_t len;
-  uint8_t st = rxData(buff, &len, rxMaxLen);
-  Serial.print("C");
-  Serial.print((int)len);
-  Serial.print("D");
-  Serial.print((int)buff[0], HEX);
+  uint8_t st = rxData(buff, rxLen, rxMaxLen);
+  memcpy(rxBuff, buff, min(*rxLen, rxMaxLen));
 
-  *rxLen = len;
-  memcpy(rxBuff, buff, len);
-
-  Serial.print("A");
-  Serial.print((int)*rxBuff);
-  Serial.print("B");
-  Serial.print((uint32_t)rxBuff, HEX);
   return st;
 }
 
@@ -959,10 +949,6 @@ bool MFRC522::PICC_IsNewCardPresent()
 {
   uint8_t res = 0;
   exeCMD(CMD_PICC_IsNewCardPresent, nullptr, 0, &res, nullptr, 1);
-  Serial.print(":");
-  Serial.print(res);
-  Serial.print("-");
-  Serial.println((uint32_t)&res, HEX);
   return res;
 } // End PICC_IsNewCardPresent()
 
