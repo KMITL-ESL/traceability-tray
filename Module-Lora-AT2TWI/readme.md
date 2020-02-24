@@ -1,4 +1,4 @@
-Ref : [Examples of AT commands on I-CUBE-LRWAN](https://www.st.com/content/ccc/resource/technical/document/application_note/group0/db/8c/4f/5a/95/9e/40/69/DM00346311/files/DM00346311.pdf/jcr:content/translations/en.DM00346311.pdf)
+Ref : [E78-900M22S User Manual](http://www.ebyte.com/en/pdf-down.aspx?id=1561)
 
 ## Frame
 
@@ -106,12 +106,13 @@ Inverted (=Checksum) = 0xFA
 | :-----: | ---------- | ----------------------------------- | --- | --- |
 |  0x30   | CFREQBANDM | Frequency mark                      | rw  |
 |  0x31   | CULDLMODE  | Ul/Dl mode (same or diff freq)      | rw  |
-|  0x32   | CWORKMODE  | Class type (Class A/C)              | rw  |
-|  0x33   | CCLASS     | Battery level                       | rw  |
-|  0x34   | CSTATUS    | node status                         | rw  |
-|  0x35   | CJOIN      | Init OTAA access to the network     | rw  |
-|  0x36   | DTRX       | Send and receive data frames        | rw  |
-|  0x37   | DRX        | latest received data from Rx buffer | rw  |
+|  0x32   | CWORKMODE  | Working mode                        | rw  |
+|  0x33   | CCLASS     | Class type (Class A/C)              | rw  |
+|  0x34   | CBL        | Battery level                       | r   |
+|  0x35   | CSTATUS    | node status                         | rw  |
+|  0x36   | CJOIN      | Init OTAA access to the network     | rw  |
+|  0x37   | DTRX       | Send and receive data frames        | rw  |
+|  0x38   | DRX        | latest received data from Rx buffer | rw  |
 
 ### 
 | command | code       | des                                   | can | res |
