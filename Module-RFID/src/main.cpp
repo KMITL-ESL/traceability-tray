@@ -316,7 +316,6 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
       DEBUG_CMD(F("MIFARE_GetValue"));
       break;
     case 4:
-      CHECK_DATA_SIZE(4);
       // use Big-endian
       value = (int32_t)data[0] << 24 | (int32_t)data[1] << 16 | (int32_t)data[2] << 8 | data[3];
       status = mfrc522.MIFARE_SetValue(blockAddr, value);
@@ -400,7 +399,7 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
     {
     case 0:
       reqResData[0] = STATUS_Success;
-      reqResData[1] = 1;
+      reqResData[1] = 6;
       memcpy(reqResData + 2, key.keyByte, 6);
       reqResLen = 2 + 6;
       DEBUG_CMD(F("GET_KEY"));
