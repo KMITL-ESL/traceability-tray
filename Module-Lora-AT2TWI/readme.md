@@ -137,3 +137,30 @@ Inverted (=Checksum) = 0xFA
 |  0x52   | IREBOOT     | System reboot                 | w   |
 |  0x53   | CLPM        | System low power settings     | w   |
 |  0x54   | ECHO        | echo configuration            | w   |
+
+
+#define CMD_Device_Type 0x00
+#define CMD_Version 0x01
+#define CMD_Reset 0x02
+
+#define CMD_LPM 0x10
+#define CMD_CHIP_ID 0x11
+#define CMD_LORAWAN 0x12
+
+#define CMD_DEV_EUI 0x20
+#define CMD_APP_EUI 0x21
+#define CMD_APP_KEY 0x22
+#define CMD_NWK_S_KEY 0x23
+#define CMD_APP_S_KEY 0x24
+#define CMD_DEV_ADDR 0x25
+#define CMD_OTAA 0x26
+
+#define CMD_ADR 0x30
+#define CMD_JOIN 0x31
+#define CMD_DUTY_CYCLE 0x32
+#define CMD_CLASS 0x33
+#define CMD_TX_CONFIRMED 0x34
+#define CMD_APP_PORT 0x35
+#define CMD_CONFIREMED_NB_TRIALS 0x36
+
+#define CMD_SEND 0x40
