@@ -4,14 +4,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "debug.h"
-
-#define STATUS_Success 0x00
-#define STATUS_I2C_Start_ERR 0xD0
-#define STATUS_I2C_Stop_ERR 0xD1
-#define STATUS_I2C_Stuffing_ERR 0xD2
-#define STATUS_I2C_Checksum_ERR 0xD3
-#define STATUS_I2C_Length_ERR 0xD4
-#define STATUS_PARAM_Length_ERR 0xF0
+#include "i2c_module.h"
 
 #define CMD_Device_Type 0x00
 #define CMD_Version 0x01
