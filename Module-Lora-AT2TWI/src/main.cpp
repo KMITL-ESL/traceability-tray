@@ -111,6 +111,7 @@ uint8_t execAT(const __FlashStringHelper *CMD, uint8_t *data, uint8_t len, bool 
   DEBUG_CMD(str);
   if (str.startsWith(F("+ERROR")))
   {
+    DEBUG_CMD("ERR");
     setResStatus(STATUS_NOT_READY_CMD);
   }
   else if (str.startsWith(F("+OK")))
