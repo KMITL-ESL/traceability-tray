@@ -144,8 +144,12 @@ uint8_t exeCMD(uint8_t CMD, uint8_t txBuff[], uint8_t txLen, uint8_t rxBuff[], u
     delayMicroseconds(delay);
 
     uint8_t buff[rxMaxLen];
-    uint8_t st = rxData(buff, rxLen, rxMaxLen, addr);
-    memcpy(rxBuff, buff, min(*rxLen, rxMaxLen));
+    uint8_t rxLen2;
+    uint8_t st = rxData(buff, &rxLen2, rxMaxLen, addr);
+    memcpy(rxBuff, buff, min(rxLen2, rxMaxLen));
+
+    if (rxLen != nullptr)
+        *rxLen = rxLen2;
 
     return st;
 }
