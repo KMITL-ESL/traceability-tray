@@ -233,7 +233,7 @@ void loop()
     appDataSize = rfid.uid.size;
     for (byte i = 0; i < appDataSize; i++)
     {
-      appData[0] = rfid.uid.uidByte[0];
+      appData[i] = rfid.uid.uidByte[i];
     }
 
     deviceState = DEVICE_STATE_SEND;
