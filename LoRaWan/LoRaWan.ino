@@ -64,7 +64,7 @@ LoRaMacRegion_t loraWanRegion = ACTIVE_REGION;
 DeviceClass_t  loraWanClass = LORAWAN_CLASS;
 
 /*the application data transmission duty cycle.  value in [ms].*/
-uint32_t appTxDutyCycle = 15000;
+uint32_t appTxDutyCycle = 200;
 
 /*OTAA or ABP*/
 bool overTheAirActivation = LORAWAN_NETMODE;
@@ -112,84 +112,13 @@ static void prepareTxFrame( uint8_t port )
 	*for example, if use REGION_CN470, 
 	*the max value for different DR can be found in MaxPayloadOfDatarateCN470 refer to DataratesCN470 and BandwidthsCN470 in "RegionCN470.h".
 	*/
-    appDataSize = 4;
-    appData[0] = 0x00;
-    appData[1] = 0x01;
-    appData[2] = 0x02;
-    appData[3] = 0x03;
-}
+//    appDataSize = 4;
+//    appData[0] = 0x00;
+//    appData[1] = 0x01;
+//    appData[2] = 0x02;
+//    appData[3] = 0x03;
 
-void setup() {
-	boardInitMcu();
-	Serial.begin(115200);
-#if(AT_SUPPORT)
-	enableAt();
-#endif
-	deviceState = DEVICE_STATE_INIT;
-	LoRaWAN.ifskipjoin();
-
-  Wire.begin();
-  
-  rfid.PCD_Init(); // Init MFRC522
-
-  for (byte i = 0; i < 6; i++)
-  {
-    key.keyByte[i] = 0xFF;
-  }
-
-  Serial.println(F("This code scan the MIFARE Classsic NUID."));
-  Serial.print(F("Using the following key:"));
-  printHex(key.keyByte, MFRC522::MF_KEY_SIZE);
-}
-
-void loop()
-{
-	switch( deviceState )
-	{
-		case DEVICE_STATE_INIT:
-		{
-#if(AT_SUPPORT)
-			getDevParam();
-#endif
-			printDevParam();
-			LoRaWAN.init(loraWanClass,loraWanRegion);
-			deviceState = DEVICE_STATE_JOIN;
-			break;
-		}
-		case DEVICE_STATE_JOIN:
-		{
-			LoRaWAN.join();
-			break;
-		}
-		case DEVICE_STATE_SEND:
-		{
-			// prepareTxFrame( appPort );
-			LoRaWAN.send();
-			deviceState = DEVICE_STATE_CYCLE;
-			break;
-		}
-		case DEVICE_STATE_CYCLE:
-		{
-			// Schedule next packet transmission
-			// txDutyCycleTime = appTxDutyCycle + randr( 0, APP_TX_DUTYCYCLE_RND );
-			// LoRaWAN.cycle(txDutyCycleTime);
-			// deviceState = DEVICE_STATE_SLEEP;
-			break;
-		}
-		case DEVICE_STATE_SLEEP:
-		{
-			LoRaWAN.sleep();
-			break;
-		}
-		default:
-		{
-			deviceState = DEVICE_STATE_INIT;
-			break;
-		}
-	}
-
-  // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
-  if (!rfid.PICC_IsNewCardPresent())
+    if (!rfid.PICC_IsNewCardPresent())
     return;
 
   // Verify if the NUID has been readed
@@ -236,7 +165,7 @@ void loop()
       appData[i] = rfid.uid.uidByte[i];
     }
 
-    deviceState = DEVICE_STATE_SEND;
+    LoRaWAN.send();
   }
   else
     Serial.println(F("Card read previously."));
@@ -246,4 +175,74 @@ void loop()
 
   // Stop encryption on PCD
   rfid.PCD_StopCrypto1();
+}
+
+void setup() {
+	boardInitMcu();
+	Serial.begin(115200);
+#if(AT_SUPPORT)
+	enableAt();
+#endif
+	deviceState = DEVICE_STATE_INIT;
+	LoRaWAN.ifskipjoin();
+
+  Wire.begin();
+  
+  rfid.PCD_Init(); // Init MFRC522
+
+  for (byte i = 0; i < 6; i++)
+  {
+    key.keyByte[i] = 0xFF;
+  }
+
+  Serial.println(F("This code scan the MIFARE Classsic NUID."));
+  Serial.print(F("Using the following key:"));
+  printHex(key.keyByte, MFRC522::MF_KEY_SIZE);
+}
+
+void loop()
+{
+	switch( deviceState )
+	{
+		case DEVICE_STATE_INIT:
+		{
+#if(AT_SUPPORT)
+			getDevParam();
+#endif
+			printDevParam();
+			LoRaWAN.init(loraWanClass,loraWanRegion);
+			deviceState = DEVICE_STATE_JOIN;
+			break;
+		}
+		case DEVICE_STATE_JOIN:
+		{
+			LoRaWAN.join();
+			break;
+		}
+		case DEVICE_STATE_SEND:
+		{
+			prepareTxFrame( appPort );
+			// LoRaWAN.send();
+			deviceState = DEVICE_STATE_CYCLE;
+			break;
+		}
+		case DEVICE_STATE_CYCLE:
+		{
+			// Schedule next packet transmission
+			txDutyCycleTime = appTxDutyCycle + randr( 0, APP_TX_DUTYCYCLE_RND );
+			LoRaWAN.cycle(txDutyCycleTime);
+			deviceState = DEVICE_STATE_SLEEP;
+			break;
+		}
+		case DEVICE_STATE_SLEEP:
+		{
+			LoRaWAN.sleep();
+			break;
+		}
+		default:
+		{
+			deviceState = DEVICE_STATE_INIT;
+			break;
+		}
+	}
 }
