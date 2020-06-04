@@ -102,6 +102,14 @@ uint8_t appPort = 2;
 */
 uint8_t confirmedNbTrials = 8;
 
+bool lastChargeState = false;
+uint32_t detectChangeState = -1;
+uint32_t lastCardChange = -1;
+
+bool isCharge() {
+  return analogRead(ADC) > 700;
+}
+
 /* Prepares the payload of the frame */
 static void prepareTxFrame( uint8_t port )
 {
@@ -118,12 +126,42 @@ static void prepareTxFrame( uint8_t port )
 //    appData[2] = 0x02;
 //    appData[3] = 0x03;
 
-    if (!rfid.PICC_IsNewCardPresent())
+  bool chargeState = isCharge();
+  if (chargeState != lastChargeState) {
+    if (detectChangeState + 5000 < millis()) {
+      Serial.println("1");
+      detectChangeState = millis();
+    } 
+    if (detectChangeState + 1000 < millis()) {
+      Serial.println("A");
+      if (lastCardChange + 3000 > millis()) {
+        Serial.println("Card");
+        appDataSize = rfid.uid.size;
+        for (byte i = 0; i < appDataSize; i++)
+        {
+          appData[i] = rfid.uid.uidByte[i];
+        }
+        appPort = 4 + chargeState;
+        LoRaWAN.send();
+      } else {
+        Serial.println("No Card");
+        appDataSize = 1;
+        appData[0] = 0xFF;
+        appPort = 4 + chargeState;
+        LoRaWAN.send();
+      }
+      lastChargeState = chargeState;
+    }
+  }
+
+  if (!rfid.PICC_IsNewCardPresent()) {
     return;
+  }
 
   // Verify if the NUID has been readed
-  if (!rfid.PICC_ReadCardSerial())
+  if (!rfid.PICC_ReadCardSerial()) {
     return;
+  }
 
   Serial.print(F("PICC type: "));
   MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
@@ -138,12 +176,14 @@ static void prepareTxFrame( uint8_t port )
     return;
   }
 
-  if (rfid.uid.uidByte[0] != nuidPICC[0] ||
-      rfid.uid.uidByte[1] != nuidPICC[1] ||
-      rfid.uid.uidByte[2] != nuidPICC[2] ||
-      rfid.uid.uidByte[3] != nuidPICC[3])
-  {
-    Serial.println(F("A new card has been detected."));
+  lastCardChange = millis();
+
+//  if (rfid.uid.uidByte[0] != nuidPICC[0] ||
+//      rfid.uid.uidByte[1] != nuidPICC[1] ||
+//      rfid.uid.uidByte[2] != nuidPICC[2] ||
+//      rfid.uid.uidByte[3] != nuidPICC[3])
+//  {
+//    Serial.println(F("A new card has been detected."));
 
     // Store NUID into nuidPICC array
     for (byte i = 0; i < 4; i++)
@@ -159,16 +199,10 @@ static void prepareTxFrame( uint8_t port )
     printDec(rfid.uid.uidByte, rfid.uid.size);
     Serial.println();
 
-    appDataSize = rfid.uid.size;
-    for (byte i = 0; i < appDataSize; i++)
-    {
-      appData[i] = rfid.uid.uidByte[i];
-    }
 
-    LoRaWAN.send();
-  }
-  else
-    Serial.println(F("Card read previously."));
+//  }
+//  else
+//    Serial.println(F("Card read previously."));
 
   // Halt PICC
   rfid.PICC_HaltA();
@@ -198,6 +232,8 @@ void setup() {
   Serial.println(F("This code scan the MIFARE Classsic NUID."));
   Serial.print(F("Using the following key:"));
   printHex(key.keyByte, MFRC522::MF_KEY_SIZE);
+
+  lastChargeState = isCharge();
 }
 
 void loop()
