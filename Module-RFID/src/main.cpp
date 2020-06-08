@@ -337,6 +337,8 @@ void prepareData(uint8_t CMD, uint8_t *data, uint8_t len)
     reqResData[1] = 1;
     reqResData[2] = mfrc522.PICC_IsNewCardPresent();
     reqResLen = 3;
+
+    Serial.print(reqResData[2]);
     DEBUG_CMD(F("PICC_IsNewCardPresent"));
     break;
 
@@ -547,6 +549,8 @@ void setup()
     ;                 // Do nothing if no serial port is opened (added for Arduino based on ATMEGA32U4)
   SPI.begin();        // Init SPI bus
   mfrc522.PCD_Init(); // Init MFRC522 card
+
+  Serial.println("HI");
 
   Wire.begin(0x12);
   Wire.onReceive(receiveEvent);

@@ -49,7 +49,7 @@ uint8_t rxData(uint8_t data[], uint8_t *length, uint8_t maxLength, int addr = 0x
     uint32_t start = millis();
     while (!Wire.available())
     {
-        if (millis() - start > 100)
+        if (millis() - start > 200)
         {
             DEBUG_I2C(F("Timeout"));
             return 0;
