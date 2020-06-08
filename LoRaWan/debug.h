@@ -1,6 +1,9 @@
 #ifndef DEBUG_h
 #define DEBUG_h
 
+#define SHOW_DEBUG_CMD
+#define SHOW_DEBUG_I2C
+
 #ifdef SHOW_DEBUG_CMD
 #define DEBUG_CMD(msg)                \
     do                                \

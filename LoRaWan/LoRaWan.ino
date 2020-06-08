@@ -3,6 +3,9 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#define SHOW_DEBUG_CMD
+#define SHOW_DEBUG_I2C
+
 // #include "i2c_module.h"
 #include "i2c_mfrc522.h"
 
@@ -37,7 +40,6 @@ void printDec(byte *buffer, byte bufferSize)
  }
 }
 
-
 /*
  * set LoraWan_RGB to Active,the RGB active in loraWan
  * RGB red means sending;
@@ -64,7 +66,7 @@ LoRaMacRegion_t loraWanRegion = ACTIVE_REGION;
 DeviceClass_t  loraWanClass = LORAWAN_CLASS;
 
 /*the application data transmission duty cycle.  value in [ms].*/
-uint32_t appTxDutyCycle = 200;
+uint32_t appTxDutyCycle = 1000;
 
 /*OTAA or ABP*/
 bool overTheAirActivation = LORAWAN_NETMODE;
@@ -100,26 +102,19 @@ uint8_t appPort = 2;
 * Note, that if NbTrials is set to 1 or 2, the MAC will not decrease
 * the datarate, in case the LoRaMAC layer did not receive an acknowledgment
 */
+
+#define CHARGE_PIN GPIO1
+
 uint8_t confirmedNbTrials = 8;
 
-bool lastChargeState = false;
-uint32_t detectChangeState = -1;
-uint32_t lastCardChange = -1;
-
-bool isCharge() {
-  return analogRead(ADC) > 700;
-}
-
-bool RFIDisOn= false;
+bool RFIDisOn = false;
 
 void RFIDon() {
   if (RFIDisOn) return;
   digitalWrite(Vext, LOW); //SET POWER
-  delay(2000);
+  delay(1500);
   Wire.begin();
-  rfid.PCD_Init();
   RFIDisOn = true;
-  Serial.println("RFID on");
 }
 
 void RFIDoff() {
@@ -130,7 +125,7 @@ void RFIDoff() {
 }
 
 bool RFIDget() {
-    if (!rfid.PICC_IsNewCardPresent()) {
+  if (!rfid.PICC_IsNewCardPresent()) {
     return false;
   }
 
@@ -151,8 +146,6 @@ bool RFIDget() {
     Serial.println(F("Your tag is not of type MIFARE Classic."));
     return false;
   }
-
-  lastCardChange = millis();
 
 //  if (rfid.uid.uidByte[0] != nuidPICC[0] ||
 //      rfid.uid.uidByte[1] != nuidPICC[1] ||
@@ -204,45 +197,46 @@ static void prepareTxFrame( uint8_t port )
 //    appData[2] = 0x02;
 //    appData[3] = 0x03;
 
-  bool chargeState = isCharge();
-  if (chargeState != lastChargeState) {
-    if (detectChangeState + 5000 < millis()) {
-      Serial.println("1");
-      detectChangeState = millis();
-    } 
-    if (detectChangeState + 1000 < millis()) {
-      Serial.println("A");
-      if (lastCardChange + 3000 > millis()) {
-        Serial.println("Card");
-        appDataSize = rfid.uid.size;
-        for (byte i = 0; i < appDataSize; i++)
-        {
-          appData[i] = rfid.uid.uidByte[i];
-        }
-        appPort = 4 + chargeState;
-        LoRaWAN.send();
-      } else {
-        Serial.println("No Card");
-        appDataSize = 1;
-        appData[0] = 0xFF;
-        appPort = 4 + chargeState;
-        LoRaWAN.send();
-      }
-      lastChargeState = chargeState;
-    }
-  }
+  delay(2500);
 
   RFIDon();
 
-  bool canGet = false;
+  bool canGetCard = false;
   uint32_t st = millis();
-  while(!canGet) {
-    if (st + 5000 < millis()) break;
-    canGet = RFIDget();
+  while(!canGetCard) {
+    if (st + 1000 < millis()) break;
+    canGetCard = RFIDget();
     delay(100);
   }
 
   RFIDoff();
+
+  bool chargeState = digitalRead(CHARGE_PIN);
+  if (canGetCard) {
+    Serial.println("Card");
+    appDataSize = rfid.uid.size;
+    for (byte i = 0; i < appDataSize; i++)
+    {
+      appData[i] = rfid.uid.uidByte[i];
+    }
+    appPort = 4 + chargeState;
+    LoRaWAN.send();
+  } else {
+    Serial.println("No Card");
+    appDataSize = 1;
+    appData[0] = 0xFF;
+    appPort = 4 + chargeState;
+    LoRaWAN.send();
+  }
+}
+
+void chargeChange()
+{
+//  delay(10);
+//  if(digitalRead(CHARGE_PIN)==HIGH)
+//  {
+    deviceState = DEVICE_STATE_SEND;
+//  }
 }
 
 void setup() {
@@ -256,8 +250,11 @@ void setup() {
  
   // Wire.begin();
 
-  pinMode(Vext,OUTPUT);
+  pinMode(Vext, OUTPUT);
   digitalWrite(Vext, HIGH); //power off
+
+  pinMode(CHARGE_PIN, INPUT);
+  attachInterrupt(CHARGE_PIN, chargeChange, BOTH);
 
   for (byte i = 0; i < 6; i++)
   {
@@ -266,8 +263,6 @@ void setup() {
 
   Serial.print(F("RFID : Using the following key:"));
   printHex(key.keyByte, MFRC522::MF_KEY_SIZE);
-
-  lastChargeState = isCharge();
 }
 
 void loop()
@@ -293,7 +288,7 @@ void loop()
 		{
 			prepareTxFrame( appPort );
 			// LoRaWAN.send();
-			deviceState = DEVICE_STATE_CYCLE;
+			deviceState = DEVICE_STATE_SLEEP; // not use cycle use only interupt
 			break;
 		}
 		case DEVICE_STATE_CYCLE:

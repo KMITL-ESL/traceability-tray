@@ -5,8 +5,8 @@
 void txData(uint8_t data[], uint8_t length, int addr = 0x12)
 {
     Wire.beginTransmission(addr);
-    Serial.print("DEBUG I2C : ");
-    Serial.println(addr);
+//    Serial.print("DEBUG I2C : ");
+//    Serial.println(addr);
     Wire.write(0x2E); // start byte
     data[length] = 0;
     for (int i = 0; i <= length; i++) // last loop for checksum
