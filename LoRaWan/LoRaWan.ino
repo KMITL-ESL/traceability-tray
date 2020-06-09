@@ -107,21 +107,17 @@ uint8_t appPort = 2;
 
 uint8_t confirmedNbTrials = 8;
 
-bool RFIDisOn = false;
-
 void RFIDon() {
-  if (RFIDisOn) return;
+  Wire.end();
+  pinMode(Vext, OUTPUT);
   digitalWrite(Vext, LOW); //SET POWER
   delay(1500);
   Wire.begin();
-  RFIDisOn = true;
 }
 
 void RFIDoff() {
-  if (!RFIDisOn) return;
-  digitalWrite(Vext, HIGH); //SET POWER
+  pinMode(Vext, ANALOG);
   Wire.end();
-  RFIDisOn = false;
 }
 
 bool RFIDget() {
@@ -247,11 +243,6 @@ void setup() {
 #endif
 	deviceState = DEVICE_STATE_INIT;
 	LoRaWAN.ifskipjoin();
- 
-  // Wire.begin();
-
-  pinMode(Vext, OUTPUT);
-  digitalWrite(Vext, HIGH); //power off
 
   pinMode(CHARGE_PIN, INPUT);
   attachInterrupt(CHARGE_PIN, chargeChange, BOTH);
