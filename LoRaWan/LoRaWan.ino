@@ -216,13 +216,11 @@ static void prepareTxFrame( uint8_t port )
       appData[i] = rfid.uid.uidByte[i];
     }
     appPort = 4 + chargeState;
-    LoRaWAN.send();
   } else {
     Serial.println("No Card");
     appDataSize = 1;
     appData[0] = 0xFF;
     appPort = 4 + chargeState;
-    LoRaWAN.send();
   }
 }
 
@@ -231,7 +229,7 @@ void chargeChange()
 //  delay(10);
 //  if(digitalRead(CHARGE_PIN)==HIGH)
 //  {
-    deviceState = DEVICE_STATE_SEND;
+      deviceState = DEVICE_STATE_SEND;
 //  }
 }
 
@@ -277,8 +275,8 @@ void loop()
 		}
 		case DEVICE_STATE_SEND:
 		{
-			prepareTxFrame( appPort );
-			// LoRaWAN.send();
+      prepareTxFrame( appPort );
+      LoRaWAN.send();
 			deviceState = DEVICE_STATE_SLEEP; // not use cycle use only interupt
 			break;
 		}
@@ -292,12 +290,12 @@ void loop()
 		}
 		case DEVICE_STATE_SLEEP:
 		{
-			LoRaWAN.sleep();
+      LoRaWAN.sleep();
 			break;
 		}
 		default:
 		{
-			deviceState = DEVICE_STATE_INIT;
+      deviceState = DEVICE_STATE_INIT;
 			break;
 		}
 	}
